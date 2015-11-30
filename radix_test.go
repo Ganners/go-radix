@@ -21,6 +21,7 @@ func TestTraverseFuzzy(t *testing.T) {
 // others and to find bugs that I wouldn't normally think of
 func TestDrawVisualisation(t *testing.T) {
 
+	// Example from Wikipedia
 	r := NewRadixTree()
 	r.Add("romane")
 	r.Add("romanus")
@@ -30,20 +31,26 @@ func TestDrawVisualisation(t *testing.T) {
 	r.Add("rubicon")
 	r.Add("rubicundus")
 
-	// Visualise
-	expect := strings.Join(
-		[]string{
-			`                             ...r                              `,
-			`                              /\                               `,
-			`             ..om                            ..ub              `,
-			`              /\                              /\               `,
-			`     ulus            ..an            ...e             ..ic     `,
-			`      /\              /\              /\               /\      `,
-			`....     ....    ...e    ..us    ..ns    ...r    ...on    undus`,
-		}, "\n")
+	// Visualise. Prior knowledge to build is the largest sequence length and
+	// the maximum depth, then it is just a case of walking the tree breadth
+	// first and appending each value (padded) to the string.
+	expect := strings.Join([]string{
+		`                                    ....r                                  `,
+		`                                      ^                                    `,
+		`                                     / \                                   `,
+		`               ...om                                   ...ub               `,
+		`                 ^                                       ^                 `,
+		`                / \                                     / \                `,
+		`     .ulus                ...an               ....e               ...ic    `,
+		`       ^                    ^                   ^                   ^      `,
+		`      / \                  / \                 / \                 / \     `,
+		`.....     .....     ....e     ...us     ...ns     ....r     ...on     undus`,
+	}, "\n")
 
 	toString := r.String()
 	if toString != expect {
-		t.Errorf("String output did not match expected visualisation. Got\n%s\n", toString)
+		t.Errorf(
+			"String output did not match expected visualisation. Got\n%s\n",
+			toString)
 	}
 }
