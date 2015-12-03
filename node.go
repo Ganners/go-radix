@@ -49,19 +49,38 @@ func (rn *radixNode) Content() interface{} {
 // -----------------------------------------------------------------------------
 
 // Inserts a child node
-func (rn *radixNode) NewChild(key []rune, data interface{}) {
+func (rn *radixNode) NewChild(key []rune) *radixNode {
 
+	newNode := &radixNode{
+		key:        key,
+		childRunes: 0,
+		// parent:     rn,
+	}
+	rn.children = append(rn.children, newNode)
+
+	return newNode
 }
 
 type (
 	terminate  bool
-	walkerFunc func([]rune, int) terminate
+	walkerFunc func([]rune, int, bool) terminate
 )
 
-func (rn *radixNode) WalkDepthFirst(wf walkerFunc) {
+// WalkDepthFirst will execute a function for
+// each node visited depth first in the tree
+func (rn *radixNode) WalkDepthFirst(wf walkerFunc, depth int) {
+	for i, childNode := range rn.Children() {
 
-}
+		// Is this the last node at this depth?
+		isLast := false
+		if i == len(rn.Children())-1 {
+			isLast = true
+		}
 
-func (rn *radixNode) WalkBreadthFirst(wf walkerFunc) {
-
+		stop := wf(childNode.Key(), depth, isLast)
+		if stop == terminate(true) {
+			return
+		}
+		childNode.WalkDepthFirst(wf, depth+1)
+	}
 }

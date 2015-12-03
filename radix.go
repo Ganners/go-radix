@@ -1,5 +1,10 @@
 package radix
 
+import (
+	"fmt"
+	"strings"
+)
+
 // RadixTree ...
 type RadixTree struct {
 	root        *radixNode
@@ -27,6 +32,7 @@ func (tree *RadixTree) Add(str string, content interface{}) {
 	// Convert input to rune slice
 	input := []rune(str)
 	leaf := tree.add(tree.root, input)
+	tree.stringCount++
 
 	// Set the content only on the leaf node
 	leaf.SetContent(content)
@@ -57,12 +63,25 @@ func (tree *RadixTree) add(node *radixNode, input []rune) *radixNode {
 
 	// If there are no children, FIRST
 	if len(node.Children()) == 0 {
-		node.NewChild(input, struct{}{})
+		tree.nodeCount++
+		return node.NewChild(input)
 	}
 
 	// Loop through children
 	for _, child := range node.Children() {
 		for i := 0; i < len(child.Key()); i++ {
+
+			// If this not the rune you are looking for...
+			if string(child.Key()[i:i+1]) != string(input[i:i+1]) {
+				if i > 0 {
+					// Have we already got some depth? If so we need to
+					// do something
+				} else {
+					// Else this is new and a sibling of the children
+					tree.nodeCount++
+					return node.NewChild(input)
+				}
+			}
 		}
 	}
 
@@ -72,5 +91,28 @@ func (tree *RadixTree) add(node *radixNode, input []rune) *radixNode {
 // String generates an ASCII tree to allow the data structure to be
 // visualised
 func (rt *RadixTree) String() string {
-	return ""
+
+	output := ""
+
+	rt.root.WalkDepthFirst(
+		func(key []rune, depth int, lastAtDepth bool) terminate {
+
+			output += strings.Repeat(" ", depth*2)
+
+			if depth > 0 {
+				output += " +- "
+			}
+
+			output += fmt.Sprintf("[%s]\n", string(key))
+
+			// if lastAtDepth {
+			// 	//
+			// 	output += strings.Repeat(" ", depth*2)
+			// 	output += " |\n"
+			// }
+
+			return terminate(false)
+		}, 0)
+
+	return output
 }

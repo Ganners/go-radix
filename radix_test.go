@@ -26,8 +26,8 @@ func TestSparseInsert(t *testing.T) {
 	}
 
 	// If it doesn't match..
-	if !reflect.DeepEqual(r, expected) {
-		t.Errorf("Result does not match expected")
+	if !reflect.DeepEqual(*r, *expected) {
+		t.Errorf("Result %s does not match expected %s", *r, *expected)
 	}
 }
 
@@ -50,15 +50,74 @@ func TestTraverseFuzzy(t *testing.T) {
 // others and to find bugs that I wouldn't normally think of
 func TestDrawVisualisation(t *testing.T) {
 
-	// Example from Wikipedia
-	r := NewRadixTree()
-	r.Add("romane", struct{}{})
-	r.Add("romanus", struct{}{})
-	r.Add("romulus", struct{}{})
-	r.Add("rubens", struct{}{})
-	r.Add("ruber", struct{}{})
-	r.Add("rubicon", struct{}{})
-	r.Add("rubicundus", struct{}{})
+	// Example from Wikipedia includes the following words:
+	// + romane
+	// + romanus
+	// + romulus
+	// + rubens
+	// + ruber
+	// + rubicon
+	// + rubicundus
+
+	r := &RadixTree{
+		root: &radixNode{
+			children: []*radixNode{
+				{
+					key: []rune("r"),
+					children: []*radixNode{
+						{
+							key: []rune("om"),
+							children: []*radixNode{
+								{
+									key: []rune("ulus"),
+								},
+								{
+									key: []rune("an"),
+									children: []*radixNode{
+										{
+											key: []rune("e"),
+										},
+										{
+											key: []rune("us"),
+										},
+									},
+								},
+							},
+						},
+						{
+							key: []rune("ub"),
+							children: []*radixNode{
+								{
+									key: []rune("e"),
+									children: []*radixNode{
+										{
+											key: []rune("ns"),
+										},
+										{
+											key: []rune("r"),
+										},
+									},
+								},
+								{
+									key: []rune("ic"),
+									children: []*radixNode{
+										{
+											key: []rune("on"),
+										},
+										{
+											key: []rune("undus"),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		stringCount: 7,
+		nodeCount:   13,
+	}
 
 	// A depth-first visualisation of the tree structure
 	expect := strings.Join([]string{
