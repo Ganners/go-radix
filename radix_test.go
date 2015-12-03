@@ -1,18 +1,47 @@
 package radix
 
 import (
+	"reflect"
 	"strings"
 	"testing"
 )
 
-func TestInsert(t *testing.T) {
+// Most basic test, can we insert two words with no overlapping characters
+func TestSparseInsert(t *testing.T) {
+
+	r := NewRadixTree()
+	r.Add("chocolate", struct{}{})
+	r.Add("pizza", struct{}{})
+
+	// Expected
+	expected := &RadixTree{
+		root: &radixNode{
+			children: []*radixNode{
+				{key: []rune("chocolate"), content: struct{}{}},
+				{key: []rune("pizza"), content: struct{}{}},
+			},
+		},
+		stringCount: 2,
+		nodeCount:   2,
+	}
+
+	// If it doesn't match..
+	if !reflect.DeepEqual(r, expected) {
+		t.Errorf("Result does not match expected")
+	}
+}
+
+// This will be a test which requires splitting a radix into at least two nodes
+func TestInsertBreakingEnd(t *testing.T) {
 
 }
 
+// Test a prefix search
 func TestTraversePrefix(t *testing.T) {
 
 }
 
+// Test an in-tree search (non-prefix) with some element of fuzz
 func TestTraverseFuzzy(t *testing.T) {
 
 }
@@ -23,28 +52,36 @@ func TestDrawVisualisation(t *testing.T) {
 
 	// Example from Wikipedia
 	r := NewRadixTree()
-	r.Add("romane")
-	r.Add("romanus")
-	r.Add("romulus")
-	r.Add("rubens")
-	r.Add("ruber")
-	r.Add("rubicon")
-	r.Add("rubicundus")
+	r.Add("romane", struct{}{})
+	r.Add("romanus", struct{}{})
+	r.Add("romulus", struct{}{})
+	r.Add("rubens", struct{}{})
+	r.Add("ruber", struct{}{})
+	r.Add("rubicon", struct{}{})
+	r.Add("rubicundus", struct{}{})
 
-	// Visualise. Prior knowledge to build is the largest sequence length and
-	// the maximum depth, then it is just a case of walking the tree breadth
-	// first and appending each value (padded) to the string.
+	// A depth-first visualisation of the tree structure
 	expect := strings.Join([]string{
-		`                                    ....r                                  `,
-		`                                      ^                                    `,
-		`                                     / \                                   `,
-		`               ...om                                   ...ub               `,
-		`                 ^                                       ^                 `,
-		`                / \                                     / \                `,
-		`     .ulus                ...an               ....e               ...ic    `,
-		`       ^                    ^                   ^                   ^      `,
-		`      / \                  / \                 / \                 / \     `,
-		`.....     .....     ....e     ...us     ...ns     ....r     ...on     undus`,
+		`[r]`,
+		` | `,
+		` +- [om]`,
+		` |   | `,
+		` |   +- [ulus]`,
+		` |   +- [an]`,
+		` |       | `,
+		` |       +- [e]`,
+		` |       +- [us]`,
+		` |`,
+		` +- [ub]`,
+		`     | `,
+		`     +- [e]`,
+		`     |   | `,
+		`     |   +- [ns]`,
+		`     |   +- [r]`,
+		`     +- [ic]`,
+		`         | `,
+		`         +- [on]`,
+		`         +- [undus]`,
 	}, "\n")
 
 	toString := r.String()
