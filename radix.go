@@ -92,7 +92,7 @@ func (tree *RadixTree) add(node *radixNode, input []rune) *radixNode {
 // visualised
 func (rt *RadixTree) String() string {
 
-	output := ""
+	output := "\n"
 	first := true
 
 	rt.root.WalkDepthFirst(

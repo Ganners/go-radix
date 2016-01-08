@@ -26,14 +26,40 @@ func TestSparseInsert(t *testing.T) {
 	}
 
 	// If it doesn't match..
-	if !reflect.DeepEqual(*r, *expected) {
-		t.Errorf("Result %s does not match expected %s", *r, *expected)
+	if !reflect.DeepEqual(r, expected) {
+		t.Errorf("Result %s does not match expected %s", r.String(), expected.String())
 	}
 }
 
 // This will be a test which requires splitting a radix into at least two nodes
 func TestInsertBreakingEnd(t *testing.T) {
 
+	r := NewRadixTree()
+	r.Add("magazine", struct{}{})
+	r.Add("magsafe", struct{}{})
+
+	// Expected
+	expected := &RadixTree{
+		root: &radixNode{
+			children: []*radixNode{
+				{
+					key:     []rune("mag"),
+					content: struct{}{},
+					children: []*radixNode{
+						{key: []rune("agazine"), content: struct{}{}},
+						{key: []rune("safe"), content: struct{}{}},
+					},
+				},
+			},
+		},
+		stringCount: 2,
+		nodeCount:   2,
+	}
+
+	// If it doesn't match..
+	if !reflect.DeepEqual(r, expected) {
+		t.Errorf("Result %s does not match expected %s", r.String(), expected.String())
+	}
 }
 
 // Test a prefix search
@@ -121,6 +147,7 @@ func TestDrawVisualisation(t *testing.T) {
 
 	// A depth-first visualisation of the tree structure
 	expect := strings.Join([]string{
+		``,
 		`[r]`,
 		`|`,
 		`+- [om]`,
@@ -148,7 +175,7 @@ func TestDrawVisualisation(t *testing.T) {
 		t.Errorf(
 			strings.Join([]string{
 				"String output did not match expected visualisation.",
-				"Got\n'%s'\nExpected\n'%s'\n",
+				"Got '%s' Expected '%s'",
 			}, ""), toString, expect)
 	}
 }
