@@ -1,6 +1,7 @@
 package radix
 
 import (
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -171,11 +172,10 @@ func TestInsertShorter(t *testing.T) {
 		root: &radixNode{
 			children: []*radixNode{
 				{
-					key:     []rune("rabb"),
+					key:     []rune("rabbi"),
 					content: struct{}{},
 					children: []*radixNode{
-						{key: []rune("it"), content: struct{}{}},
-						{key: []rune("i"), content: struct{}{}},
+						{key: []rune("t"), content: struct{}{}},
 					},
 				},
 			},
@@ -200,11 +200,10 @@ func TestInsertEvenShorter(t *testing.T) {
 		root: &radixNode{
 			children: []*radixNode{
 				{
-					key:     []rune("ra"),
+					key:     []rune("rab"),
 					content: struct{}{},
 					children: []*radixNode{
-						{key: []rune("bbit"), content: struct{}{}},
-						{key: []rune("b"), content: struct{}{}},
+						{key: []rune("bit"), content: struct{}{}},
 					},
 				},
 			},
@@ -239,8 +238,87 @@ func TestWikipediaExample(t *testing.T) {
 }
 
 // Test a prefix search
-func TestTraversePrefix(t *testing.T) {
+func TestPrefixSearch(t *testing.T) {
 
+	r := NewRadixTree()
+	r.Add("romane", struct{}{})
+	r.Add("romanus", struct{}{})
+	r.Add("romulus", struct{}{})
+	r.Add("ruber", struct{}{})
+	r.Add("rubens", struct{}{})
+	r.Add("rubicon", struct{}{})
+	r.Add("rubicundus", struct{}{})
+
+	// Search for 'rom' which is 2 nodes deep
+	{
+		expected := []string{
+			"romane",
+			"romanus",
+			"romulus",
+		}
+
+		res := r.PrefixSearch("rom")
+
+		if !reflect.DeepEqual(res, expected) {
+			t.Errorf("Prefix result %+v does not matched expected %+v",
+				res, expected)
+		}
+	}
+
+	// Search for the two 'rubi' which are 3 nodes deep
+	{
+		expected := []string{
+			"rubicon",
+			"rubicundus",
+		}
+
+		res := r.PrefixSearch("rubi")
+
+		if !reflect.DeepEqual(res, expected) {
+			t.Errorf("Prefix result %+v does not matched expected %+v",
+				res, expected)
+		}
+	}
+
+	// Searching for 'r' should return everything in this trie
+	{
+		expected := []string{
+			"romane",
+			"romanus",
+			"romulus",
+			"ruber",
+			"rubens",
+			"rubicon",
+			"rubicundus",
+		}
+
+		res := r.PrefixSearch("r")
+
+		if !reflect.DeepEqual(res, expected) {
+			t.Errorf("Prefix result %+v does not matched expected %+v",
+				res, expected)
+		}
+	}
+
+	// Empty searches should look at all nodes and return
+	{
+		expected := []string{
+			"romane",
+			"romanus",
+			"romulus",
+			"ruber",
+			"rubens",
+			"rubicon",
+			"rubicundus",
+		}
+
+		res := r.PrefixSearch("")
+
+		if !reflect.DeepEqual(res, expected) {
+			t.Errorf("Prefix result %+v does not matched expected %+v",
+				res, expected)
+		}
+	}
 }
 
 // Test an in-tree search (non-prefix) with some element of fuzz

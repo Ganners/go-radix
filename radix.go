@@ -5,7 +5,8 @@ import (
 	"strings"
 )
 
-// RadixTree ...
+// RadixTree wraps the root, provides all functionality to add, search
+// and so on.
 type RadixTree struct {
 	root        *radixNode
 	stringCount int
@@ -19,6 +20,82 @@ func NewRadixTree() *RadixTree {
 	return &RadixTree{
 		root: &radixNode{},
 	}
+}
+
+// PrefixSearch executes the fastest form of search, whereby it iterates
+// through the letters starting from index 0
+//
+// Search with an empty string should return everything
+func (tree *RadixTree) PrefixSearch(str string) []string {
+
+	if len(tree.root.Children()) == 0 {
+		return []string{}
+	}
+
+	return tree.prefixSearch(
+		[]rune(str),
+		tree.root,
+		0,
+		[]rune{})
+}
+
+// Recursively prefix-searches
+func (tree *RadixTree) prefixSearch(
+	str []rune,
+	node *radixNode,
+	index int,
+	found []rune,
+) []string {
+
+	if index+1 > len(str) {
+
+		// Collect below node with found prefix
+		return tree.collect(node, found)
+	}
+
+	searchLetter := str[index]
+
+	for _, child := range node.Children() {
+		for _, letter := range child.Key() {
+
+			// A matching letter has been found
+			if searchLetter == letter {
+
+				// Recurse, iterate by the number of keys in this node.
+				// There's a guarantee with prefix trees so we don't
+				// actually need to look at all letters
+				newIndex := index + len(child.Key())
+				toAppend := child.Key()
+
+				return tree.prefixSearch(
+					str,
+					child,
+					newIndex,
+					append(found, toAppend...))
+			}
+		}
+	}
+
+	return []string{}
+}
+
+// The collection will, starting from a given node, recurse and generate
+// strings from every leaf
+func (tree *RadixTree) collect(node *radixNode, prefix []rune) []string {
+
+	if len(node.Children()) == 0 {
+		return []string{string(prefix)}
+	}
+
+	collected := []string{}
+
+	// Recursively append
+	for _, child := range node.Children() {
+		runes := append(prefix, child.Key()...)
+		collected = append(collected, tree.collect(child, runes)...)
+	}
+
+	return collected
 }
 
 // Add inserts a string into the trie
@@ -38,7 +115,7 @@ func (tree *RadixTree) Add(str string, content interface{}) {
 	leaf.SetContent(content)
 }
 
-//
+// The brains behind the adding, handles all cases for adding new keys
 func (tree *RadixTree) add(node *radixNode, input []rune, depth int) *radixNode {
 
 	// Recursion down to 0 means we're all out and we should return
@@ -71,6 +148,7 @@ func (tree *RadixTree) add(node *radixNode, input []rune, depth int) *radixNode 
 
 				// Are we on the last character of keys?
 				if i+1 == len(child.Key()) {
+
 					// Are there more children?
 					if len(child.Children()) > 0 {
 						tree.add(child, input[i+1:], depth+1)
@@ -91,11 +169,11 @@ func (tree *RadixTree) add(node *radixNode, input []rune, depth int) *radixNode 
 					// If we don't have a match on the first letter,
 					// insert
 
-					// If theres a single letter difference, we actually
-					// need to break one before so we have a prefix
-					if input[i : i+1][0] == 0 {
-						i -= 1
-					}
+					//> // If theres a single letter difference, we actually
+					//> // need to break one before so we have a prefix
+					//> if input[i : i+1][0] == 0 {
+					//> 	i -= 1
+					//> }
 
 					// Break the child at i into 2 nodes
 					tree.nodeCount++
