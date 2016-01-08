@@ -2,7 +2,6 @@ package radix
 
 import (
 	"fmt"
-	"log"
 	"strings"
 )
 
@@ -32,7 +31,7 @@ func (tree *RadixTree) Add(str string, content interface{}) {
 
 	// Convert input to rune slice
 	input := []rune(str)
-	leaf := tree.add(tree.root, input)
+	leaf := tree.add(tree.root, input, 0)
 	tree.stringCount++
 
 	// Set the content only on the leaf node
@@ -40,60 +39,72 @@ func (tree *RadixTree) Add(str string, content interface{}) {
 }
 
 //
-// apple
-// appleby
-// apboy
-// orange
-// orangina
-//
-// nodes empty? yes - insert apple
-// search through children
-//   -> search through runes (left to right)
-//       -> break when found a match
-//       -> is the match in the middle of a word?
-//            -> break the word into two nodes
-//            -> add remaining runes and return leaf?
-//       -> else is our match a partial? return the recursion
-func (tree *RadixTree) add(node *radixNode, input []rune) *radixNode {
+func (tree *RadixTree) add(node *radixNode, input []rune, depth int) *radixNode {
 
 	// Recursion down to 0 means we're all out and we should return
 	if len(input) == 0 {
 		return node
 	}
 
-	// If there are no children, FIRST
+	// If there are no children, I.e. this is the top element
 	if len(node.Children()) == 0 {
 		tree.nodeCount++
 		return node.NewChild(input)
 	}
 
 	// Loop through children
-	for _, child := range node.Children() {
+	for childIndex, child := range node.Children() {
+
+		// Loop through the letters that make up the key
 		for i := 0; i < len(child.Key()); i++ {
 
-			// If this is not the rune you are looking for...
-			if string(child.Key()[i:i+1]) != string(input[i:i+1]) {
-				if i > 0 {
+			// Add some safety to the input
+			if i > len(input) {
+				continue
+			}
 
-					if len(child.Key()) > len(input) {
+			childRune := child.Key()[i : i+1][0]
+			inputRune := input[i : i+1][0]
 
-						// Break the child at i into 2 nodes
-						_, err := child.Break(i)
+			// If the letter is a match
+			if childRune == inputRune {
 
-						// If there's no error, lazily restart add
-						if err != nil {
-							log.Fatalf("Unexpected error: %s", err.Error())
-						}
-
-						return child.NewChild(input[i:])
-					} else {
-						// We are in a position where we can add
-						log.Println(string(input[i : i+1]))
+				// Are we on the last character of keys?
+				if i+1 == len(child.Key()) {
+					// Are there more children?
+					if len(child.Children()) > 0 {
+						tree.add(child, input[i+1:], depth+1)
 					}
-				} else {
-					// Else this is new and a sibling of the children
+				}
+			} else {
+
+				// Else it's not a match, check if we've exhausted the
+				// chance of it existing in another sibling, then:
+				if childIndex == len(node.Children())-1 {
+
+					// If it's the first letter, just insert to node
+					// (not child)
+					if i == 0 {
+						return node.NewChild(input[i:])
+					}
+
+					// If we don't have a match on the first letter,
+					// insert
+
+					// If theres a single letter difference, we actually
+					// need to break one before so we have a prefix
+					if input[i : i+1][0] == 0 {
+						i -= 1
+					}
+
+					// Break the child at i into 2 nodes
 					tree.nodeCount++
-					return node.NewChild(input)
+					child.Break(i)
+
+					if len(input[i:]) > 0 {
+						tree.nodeCount++
+						return child.NewChild(input[i:])
+					}
 				}
 			}
 		}

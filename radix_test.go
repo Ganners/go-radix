@@ -5,20 +5,9 @@ import (
 	"testing"
 )
 
-// I like the ability to visualise, to help explain how things work to
-// others and to find bugs that I wouldn't normally think of
-func TestDrawVisualisation(t *testing.T) {
+func getWikipediaExampleTree() *RadixTree {
 
-	// Example from Wikipedia includes the following words:
-	// + romane
-	// + romanus
-	// + romulus
-	// + rubens
-	// + ruber
-	// + rubicon
-	// + rubicundus
-
-	r := &RadixTree{
+	return &RadixTree{
 		root: &radixNode{
 			children: []*radixNode{
 				{
@@ -27,9 +16,6 @@ func TestDrawVisualisation(t *testing.T) {
 						{
 							key: []rune("om"),
 							children: []*radixNode{
-								{
-									key: []rune("ulus"),
-								},
 								{
 									key: []rune("an"),
 									children: []*radixNode{
@@ -41,6 +27,9 @@ func TestDrawVisualisation(t *testing.T) {
 										},
 									},
 								},
+								{
+									key: []rune("ulus"),
+								},
 							},
 						},
 						{
@@ -50,10 +39,10 @@ func TestDrawVisualisation(t *testing.T) {
 									key: []rune("e"),
 									children: []*radixNode{
 										{
-											key: []rune("ns"),
+											key: []rune("r"),
 										},
 										{
-											key: []rune("r"),
+											key: []rune("ns"),
 										},
 									},
 								},
@@ -74,9 +63,14 @@ func TestDrawVisualisation(t *testing.T) {
 				},
 			},
 		},
-		stringCount: 7,
-		nodeCount:   13,
 	}
+}
+
+// I like the ability to visualise, to help explain how things work to
+// others and to find bugs that I wouldn't normally think of
+func TestDrawVisualisation(t *testing.T) {
+
+	r := getWikipediaExampleTree()
 
 	// A depth-first visualisation of the tree structure
 	expect := strings.Join([]string{
@@ -85,17 +79,17 @@ func TestDrawVisualisation(t *testing.T) {
 		`|`,
 		`+- [om]`,
 		`   |`,
-		`   +- [ulus]`,
 		`   +- [an]`,
 		`      |`,
 		`      +- [e]`,
 		`      +- [us]`,
+		`   +- [ulus]`,
 		`+- [ub]`,
 		`   |`,
 		`   +- [e]`,
 		`      |`,
-		`      +- [ns]`,
 		`      +- [r]`,
+		`      +- [ns]`,
 		`   +- [ic]`,
 		`      |`,
 		`      +- [on]`,
@@ -128,8 +122,6 @@ func TestSparseInsert(t *testing.T) {
 				{key: []rune("pizza"), content: struct{}{}},
 			},
 		},
-		stringCount: 2,
-		nodeCount:   2,
 	}
 
 	// If it doesn't match..
@@ -159,9 +151,86 @@ func TestInsertBreakingEnd(t *testing.T) {
 				},
 			},
 		},
-		stringCount: 2,
-		nodeCount:   2,
 	}
+
+	// If it doesn't match..
+	if r.String() != expected.String() {
+		t.Errorf("Result %s does not match expected %s", r.String(), expected.String())
+	}
+}
+
+// Test to split with a shorter word (must still prefix with letter)
+func TestInsertShorter(t *testing.T) {
+
+	r := NewRadixTree()
+	r.Add("rabbit", struct{}{})
+	r.Add("rabbi", struct{}{})
+
+	// Expected
+	expected := &RadixTree{
+		root: &radixNode{
+			children: []*radixNode{
+				{
+					key:     []rune("rabb"),
+					content: struct{}{},
+					children: []*radixNode{
+						{key: []rune("it"), content: struct{}{}},
+						{key: []rune("i"), content: struct{}{}},
+					},
+				},
+			},
+		},
+	}
+
+	// If it doesn't match..
+	if r.String() != expected.String() {
+		t.Errorf("Result %s does not match expected %s", r.String(), expected.String())
+	}
+}
+
+// More extreme version of the above test
+func TestInsertEvenShorter(t *testing.T) {
+
+	r := NewRadixTree()
+	r.Add("rabbit", struct{}{})
+	r.Add("rab", struct{}{})
+
+	// Expected
+	expected := &RadixTree{
+		root: &radixNode{
+			children: []*radixNode{
+				{
+					key:     []rune("ra"),
+					content: struct{}{},
+					children: []*radixNode{
+						{key: []rune("bbit"), content: struct{}{}},
+						{key: []rune("b"), content: struct{}{}},
+					},
+				},
+			},
+		},
+	}
+
+	// If it doesn't match..
+	if r.String() != expected.String() {
+		t.Errorf("Result %s does not match expected %s", r.String(), expected.String())
+	}
+}
+
+// Test generating the wikipedia example tree
+func TestWikipediaExample(t *testing.T) {
+
+	r := NewRadixTree()
+	r.Add("romane", struct{}{})
+	r.Add("romanus", struct{}{})
+	r.Add("romulus", struct{}{})
+	r.Add("ruber", struct{}{})
+	r.Add("rubens", struct{}{})
+	r.Add("rubicon", struct{}{})
+	r.Add("rubicundus", struct{}{})
+
+	// Expected
+	expected := getWikipediaExampleTree()
 
 	// If it doesn't match..
 	if r.String() != expected.String() {

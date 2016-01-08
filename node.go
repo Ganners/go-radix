@@ -73,12 +73,17 @@ func (rn *radixNode) Break(index int) (*radixNode, error) {
 	// Split the string
 	preKey := rn.Key()[:index]
 	sufKey := rn.Key()[index:]
+	content := rn.Content()
+	children := rn.Children()
 
-	// Set the vars, add the child
+	// Set the vars, move children and add the child
 	rn.key = preKey
-	child := rn.NewChild(sufKey)
-	child.SetContent(rn.Content())
 	rn.content = nil
+	rn.children = make([]*radixNode, 0)
+
+	child := rn.NewChild(sufKey)
+	child.children = children
+	child.SetContent(content)
 
 	return rn, nil
 }
