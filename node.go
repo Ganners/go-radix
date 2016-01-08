@@ -1,5 +1,7 @@
 package radix
 
+import "errors"
+
 // The all-important building block
 type radixNode struct {
 
@@ -54,11 +56,31 @@ func (rn *radixNode) NewChild(key []rune) *radixNode {
 	newNode := &radixNode{
 		key:        key,
 		childRunes: 0,
-		// parent:     rn,
+		parent:     rn,
 	}
 	rn.children = append(rn.children, newNode)
 
 	return newNode
+}
+
+// Break will split a node into two nodes at a given index
+func (rn *radixNode) Break(index int) (*radixNode, error) {
+
+	if index > len(rn.Key()) {
+		return nil, errors.New("Index exceeds key length")
+	}
+
+	// Split the string
+	preKey := rn.Key()[:index]
+	sufKey := rn.Key()[index:]
+
+	// Set the vars, add the child
+	rn.key = preKey
+	child := rn.NewChild(sufKey)
+	child.SetContent(rn.Content())
+	rn.content = nil
+
+	return rn, nil
 }
 
 type (

@@ -2,6 +2,7 @@ package radix
 
 import (
 	"fmt"
+	"log"
 	"strings"
 )
 
@@ -53,7 +54,6 @@ func (tree *RadixTree) Add(str string, content interface{}) {
 //            -> break the word into two nodes
 //            -> add remaining runes and return leaf?
 //       -> else is our match a partial? return the recursion
-
 func (tree *RadixTree) add(node *radixNode, input []rune) *radixNode {
 
 	// Recursion down to 0 means we're all out and we should return
@@ -71,11 +71,25 @@ func (tree *RadixTree) add(node *radixNode, input []rune) *radixNode {
 	for _, child := range node.Children() {
 		for i := 0; i < len(child.Key()); i++ {
 
-			// If this not the rune you are looking for...
+			// If this is not the rune you are looking for...
 			if string(child.Key()[i:i+1]) != string(input[i:i+1]) {
 				if i > 0 {
-					// Have we already got some depth? If so we need to
-					// do something
+
+					if len(child.Key()) > len(input) {
+
+						// Break the child at i into 2 nodes
+						_, err := child.Break(i)
+
+						// If there's no error, lazily restart add
+						if err != nil {
+							log.Fatalf("Unexpected error: %s", err.Error())
+						}
+
+						return child.NewChild(input[i:])
+					} else {
+						// We are in a position where we can add
+						log.Println(string(input[i : i+1]))
+					}
 				} else {
 					// Else this is new and a sibling of the children
 					tree.nodeCount++
