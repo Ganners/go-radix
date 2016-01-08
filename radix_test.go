@@ -122,31 +122,33 @@ func TestDrawVisualisation(t *testing.T) {
 	// A depth-first visualisation of the tree structure
 	expect := strings.Join([]string{
 		`[r]`,
-		` | `,
-		` +- [om]`,
-		` |   | `,
-		` |   +- [ulus]`,
-		` |   +- [an]`,
-		` |       | `,
-		` |       +- [e]`,
-		` |       +- [us]`,
-		` |`,
-		` +- [ub]`,
-		`     | `,
-		`     +- [e]`,
-		`     |   | `,
-		`     |   +- [ns]`,
-		`     |   +- [r]`,
-		`     +- [ic]`,
-		`         | `,
-		`         +- [on]`,
-		`         +- [undus]`,
+		`|`,
+		`+- [om]`,
+		`   |`,
+		`   +- [ulus]`,
+		`   +- [an]`,
+		`      |`,
+		`      +- [e]`,
+		`      +- [us]`,
+		`+- [ub]`,
+		`   |`,
+		`   +- [e]`,
+		`      |`,
+		`      +- [ns]`,
+		`      +- [r]`,
+		`   +- [ic]`,
+		`      |`,
+		`      +- [on]`,
+		`      +- [undus]`,
+		``,
 	}, "\n")
 
 	toString := r.String()
 	if toString != expect {
 		t.Errorf(
-			"String output did not match expected visualisation. Got\n%s\n",
-			toString)
+			strings.Join([]string{
+				"String output did not match expected visualisation.",
+				"Got\n'%s'\nExpected\n'%s'\n",
+			}, ""), toString, expect)
 	}
 }

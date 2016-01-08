@@ -63,21 +63,34 @@ func (rn *radixNode) NewChild(key []rune) *radixNode {
 
 type (
 	terminate  bool
-	walkerFunc func([]rune, int, bool) terminate
+	walkerFunc func([]rune, int, bool, bool, int) terminate
 )
 
 // WalkDepthFirst will execute a function for
 // each node visited depth first in the tree
 func (rn *radixNode) WalkDepthFirst(wf walkerFunc, depth int) {
+
+	isFirst := true
+	numCurrentChildren := len(rn.Children())
+
 	for i, childNode := range rn.Children() {
 
 		// Is this the last node at this depth?
 		isLast := false
-		if i == len(rn.Children())-1 {
+		numChildren := len(childNode.Children())
+		if i == numCurrentChildren-1 {
 			isLast = true
 		}
 
-		stop := wf(childNode.Key(), depth, isLast)
+		stop := wf(
+			childNode.Key(),
+			depth,
+			isFirst,
+			isLast,
+			numChildren,
+		)
+
+		isFirst = false
 		if stop == terminate(true) {
 			return
 		}

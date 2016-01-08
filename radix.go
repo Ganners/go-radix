@@ -93,24 +93,30 @@ func (tree *RadixTree) add(node *radixNode, input []rune) *radixNode {
 func (rt *RadixTree) String() string {
 
 	output := ""
+	first := true
 
 	rt.root.WalkDepthFirst(
-		func(key []rune, depth int, lastAtDepth bool) terminate {
+		func(
+			key []rune,
+			depth int,
+			firstAtDepth bool,
+			lastAtDepth bool,
+			numChildren int,
+		) terminate {
 
-			output += strings.Repeat(" ", depth*2)
+			if !first && firstAtDepth {
+				output += strings.Repeat(" ", (depth*3)-3)
+				output += "|\n"
+			}
 
 			if depth > 0 {
-				output += " +- "
+				output += strings.Repeat(" ", (depth*3)-3)
+				output += "+- "
 			}
 
 			output += fmt.Sprintf("[%s]\n", string(key))
 
-			// if lastAtDepth {
-			// 	//
-			// 	output += strings.Repeat(" ", depth*2)
-			// 	output += " |\n"
-			// }
-
+			first = false
 			return terminate(false)
 		}, 0)
 
