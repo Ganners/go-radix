@@ -240,14 +240,8 @@ func TestWikipediaExample(t *testing.T) {
 // Test a prefix search
 func TestPrefixSearch(t *testing.T) {
 
-	r := NewRadixTree()
-	r.Add("romane", struct{}{})
-	r.Add("romanus", struct{}{})
-	r.Add("romulus", struct{}{})
-	r.Add("ruber", struct{}{})
-	r.Add("rubens", struct{}{})
-	r.Add("rubicon", struct{}{})
-	r.Add("rubicundus", struct{}{})
+	// Grab pre-created tree
+	r := getWikipediaExampleTree()
 
 	// Search for 'rom' which is 2 nodes deep
 	{

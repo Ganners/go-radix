@@ -169,12 +169,6 @@ func (tree *RadixTree) add(node *radixNode, input []rune, depth int) *radixNode 
 					// If we don't have a match on the first letter,
 					// insert
 
-					//> // If theres a single letter difference, we actually
-					//> // need to break one before so we have a prefix
-					//> if input[i : i+1][0] == 0 {
-					//> 	i -= 1
-					//> }
-
 					// Break the child at i into 2 nodes
 					tree.nodeCount++
 					child.Break(i)
