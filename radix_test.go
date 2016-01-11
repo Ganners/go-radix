@@ -172,10 +172,11 @@ func TestInsertShorter(t *testing.T) {
 		root: &radixNode{
 			children: []*radixNode{
 				{
-					key:     []rune("rabbi"),
+					key:     []rune("rabb"),
 					content: struct{}{},
 					children: []*radixNode{
-						{key: []rune("t"), content: struct{}{}},
+						{key: []rune("it"), content: struct{}{}},
+						{key: []rune("i"), content: struct{}{}},
 					},
 				},
 			},
@@ -200,10 +201,11 @@ func TestInsertEvenShorter(t *testing.T) {
 		root: &radixNode{
 			children: []*radixNode{
 				{
-					key:     []rune("rab"),
+					key:     []rune("ra"),
 					content: struct{}{},
 					children: []*radixNode{
-						{key: []rune("bit"), content: struct{}{}},
+						{key: []rune("bbit"), content: struct{}{}},
+						{key: []rune("b"), content: struct{}{}},
 					},
 				},
 			},
@@ -312,6 +314,27 @@ func TestPrefixSearch(t *testing.T) {
 			t.Errorf("Prefix result %+v does not matched expected %+v",
 				res, expected)
 		}
+	}
+}
+
+// In the case we input 'rabbit' and then 'rabbi', we should be able to
+// search for both
+func TestPrefixSearchDiffByOne(t *testing.T) {
+
+	r := NewRadixTree()
+	r.Add("rabbit", struct{}{})
+	r.Add("rabbi", struct{}{})
+
+	expected := []string{
+		"rabbit",
+		"rabbi",
+	}
+
+	res := r.PrefixSearch("rab")
+
+	if !reflect.DeepEqual(res, expected) {
+		t.Errorf("Prefix result %+v does not matched expected %+v",
+			res, expected)
 	}
 }
 
