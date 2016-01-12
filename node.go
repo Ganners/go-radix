@@ -21,8 +21,11 @@ type radixNode struct {
 	// Content associated with this node
 	content interface{}
 
-	// Is this a word?
+	// Is this something which was inserted?
 	doCollect bool
+
+	// The bit mask for all child letters (excluding itself)
+	bitMask uint32
 }
 
 // Returns the key run slice
@@ -49,6 +52,17 @@ func (rn *radixNode) SetContent(content interface{}) {
 // to be of any use
 func (rn *radixNode) Content() interface{} {
 	return rn.content
+}
+
+// OrBitMask will take a bit mask (uint32) and OR it (logical inclusive)
+// to the current bit mask that is set.
+func (rn *radixNode) OrBitMask(bitMask uint32) {
+	rn.bitMask |= bitMask
+}
+
+// Performs a check to see if the bit mask is set
+func (rn *radixNode) BitMaskSet(bitMask uint32) bool {
+	return bitMaskContains(rn.bitMask, bitMask)
 }
 
 // Sets the node to be collected (this means it's a string that was

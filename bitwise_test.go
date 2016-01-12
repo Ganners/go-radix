@@ -137,3 +137,42 @@ func TestGenBitMask(t *testing.T) {
 		}
 	}
 }
+
+func TestBitMaskContains(t *testing.T) {
+
+	testCases := []struct {
+		Haystack uint32
+		Needle   uint32
+		Expected bool
+	}{
+		{
+			Haystack: 7,
+			Needle:   3,
+			Expected: true,
+		},
+		{
+			Haystack: 7,
+			Needle:   1,
+			Expected: true,
+		},
+		{
+			Haystack: 7,
+			Needle:   8,
+			Expected: false,
+		},
+		{
+			Haystack: 8,
+			Needle:   7,
+			Expected: false,
+		},
+	}
+
+	for _, test := range testCases {
+
+		res := bitMaskContains(test.Haystack, test.Needle)
+		if res != test.Expected {
+			t.Errorf("Error checking bit mask for %d in %d, got %t",
+				test.Needle, test.Haystack, res)
+		}
+	}
+}

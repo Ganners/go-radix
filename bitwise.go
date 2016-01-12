@@ -77,3 +77,8 @@ func genBitMask(str []rune) uint32 {
 
 	return mask
 }
+
+// Checks if bitmask needle contains the bits in haystack
+func bitMaskContains(haystack, needle uint32) bool {
+	return (haystack & needle) == needle
+}

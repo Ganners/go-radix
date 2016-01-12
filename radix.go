@@ -147,7 +147,8 @@ func (tree *RadixTree) Add(str string, content interface{}) {
 
 	// Convert input to rune slice
 	input := []rune(str)
-	leaf := tree.add(tree.root, input, 0)
+	bitMask := genBitMask(input)
+	leaf := tree.add(tree.root, input, bitMask, 0)
 	tree.stringCount++
 
 	// Set the content only on the leaf node
@@ -156,7 +157,12 @@ func (tree *RadixTree) Add(str string, content interface{}) {
 }
 
 // The brains behind the adding, handles all cases for adding new keys
-func (tree *RadixTree) add(node *radixNode, input []rune, depth int) *radixNode {
+func (tree *RadixTree) add(
+	node *radixNode,
+	input []rune,
+	bitMask uint32,
+	depth int,
+) *radixNode {
 
 	// Recursion down to 0 means we're all out and we should return
 	if len(input) == 0 {
@@ -191,7 +197,7 @@ func (tree *RadixTree) add(node *radixNode, input []rune, depth int) *radixNode 
 
 					// Are there more children?
 					if len(child.Children()) > 0 {
-						tree.add(child, input[i+1:], depth+1)
+						tree.add(child, input[i+1:], bitMask, depth+1)
 					}
 				}
 			} else {
