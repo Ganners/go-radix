@@ -119,7 +119,11 @@ func (rn *radixNode) Break(index int) (*radixNode, error) {
 	child.children = children
 	child.SetContent(content)
 
-	// Generate a bitmask on the parent for the contents of the child
+	// Set the child to have the bits it's parents once had
+	child.OrBitMask(rn.bitMask)
+
+	// Generate a bitmask on the parent, should have it's child's runes
+	// set too
 	rn.OrBitMask(genBitMask(sufKey))
 
 	return rn, nil
