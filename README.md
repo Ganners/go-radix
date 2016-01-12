@@ -10,3 +10,51 @@ a method for performing non-prefix searches on the trie, with some
 simplifications which mean duplicate letters may be acceptable (for example).
 
 Implementation details exist throughout the code.
+
+Example Usage
+-------------
+
+### Create the tree and insert some keys with content
+
+	r := NewRadixTree()
+	r.Add("romane", struct{}{})
+	r.Add("romanus", struct{}{})
+	r.Add("romulus", struct{}{})
+	r.Add("ruber", struct{}{})
+	r.Add("rubens", struct{}{})
+	r.Add("rubicon", struct{}{})
+	r.Add("rubicundus", struct{}{})
+
+### Want to see how it looks?
+
+    fmt.Printf("%s", r.String())
+
+### Example output:
+
+    [r]
+    |
+    +- [om]
+       |
+       +- [an]
+          |
+          +- [e]
+          +- [us]
+       +- [ulus]
+    +- [ub]
+       |
+       +- [e]
+          |
+          +- [r]
+          +- [ns]
+       +- [ic]
+          |
+          +- [on]
+          +- [undus]
+
+### Prefix search
+
+    searchStrings := r.PrefixSearch("rom")
+
+### Fuzzy search
+
+    fuzzyStrings := r.FuzzySearch("us")
