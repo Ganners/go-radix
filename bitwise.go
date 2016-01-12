@@ -3,8 +3,6 @@
 // masks.
 package radix
 
-import "log"
-
 // Counts the number of bits that are set using voodoo black magic from
 // the gates of hell. Simplified as much as possible
 //
@@ -62,7 +60,6 @@ func genBitMask(str []rune) uint32 {
 			// Half the number and add to start value
 			number := uint32(r - 48)
 			setBit = (number / 2) + 26
-			log.Println(setBit)
 
 		} else {
 			// All other characters (special characters etc.) will appear as character

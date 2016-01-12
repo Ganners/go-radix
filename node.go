@@ -60,9 +60,15 @@ func (rn *radixNode) OrBitMask(bitMask uint32) {
 	rn.bitMask |= bitMask
 }
 
-// Performs a check to see if the bit mask is set
-func (rn *radixNode) BitMaskSet(bitMask uint32) bool {
+// IsBitMaskSet performs a check to see if the bit mask is set
+func (rn *radixNode) IsBitMaskSet(bitMask uint32) bool {
 	return bitMaskContains(rn.bitMask, bitMask)
+}
+
+// BitMask returns the bit mask which is set, should only have practical uses
+// in testing
+func (rn *radixNode) BitMask() uint32 {
+	return rn.bitMask
 }
 
 // Sets the node to be collected (this means it's a string that was
@@ -112,6 +118,9 @@ func (rn *radixNode) Break(index int) (*radixNode, error) {
 	child := rn.NewChild(sufKey)
 	child.children = children
 	child.SetContent(content)
+
+	// Generate a bitmask on the parent for the contents of the child
+	rn.OrBitMask(genBitMask(sufKey))
 
 	return rn, nil
 }

@@ -2,6 +2,7 @@ package radix
 
 import (
 	"reflect"
+	"strconv"
 	"strings"
 	"testing"
 )
@@ -334,6 +335,54 @@ func TestPrefixSearchDiffByOne(t *testing.T) {
 		t.Errorf("Prefix result %+v does not matched expected %+v",
 			res, expected)
 	}
+}
+
+// Test the bit masks propogate down the nodes as we would expect
+func TestAddBitMaskSet(t *testing.T) {
+
+	r := NewRadixTree()
+	root := r.Add("november", struct{}{})
+	r.Add("nova", struct{}{})
+	r.Add("niagra falls", struct{}{})
+	r.Add("noel", struct{}{})
+	//fmt.Printf("%s", r.String())
+
+	// The first node should the letters below n
+	{
+		expected := genBitMask([]rune{
+			'o', 'v', 'e', 'm', 'b', 'r',
+			'a',
+			'i', 'g', ' ', 'f', 'l', 's'})
+
+		res := root.IsBitMaskSet(expected)
+
+		if res == false {
+			expectedStr := strconv.FormatInt(int64(expected), 2)
+			gotStr := strconv.FormatInt(int64(root.BitMask()), 2)
+			t.Errorf("Bitmask %s did not contain the expected bits %s",
+				gotStr, expectedStr)
+		}
+	}
+
+	// The letters below 'o' should contain everything but those in
+	// niagra falls
+	{
+		node := root.Children()[0]
+
+		expected := genBitMask([]rune{
+			'o', 'v', 'e', 'm', 'b', 'r',
+			'a', 'l'})
+
+		res := node.IsBitMaskSet(expected)
+
+		if res == false {
+			expectedStr := strconv.FormatInt(int64(expected), 2)
+			gotStr := strconv.FormatInt(int64(node.BitMask()), 2)
+			t.Errorf("Bitmask %s did not contain the expected bits %s",
+				gotStr, expectedStr)
+		}
+	}
+
 }
 
 // Test an in-tree search (non-prefix) with some element of fuzz

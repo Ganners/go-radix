@@ -137,12 +137,14 @@ func (tree *RadixTree) collect(node *radixNode, prefix []rune) []string {
 	return collected
 }
 
-// Add inserts a string into the trie
-func (tree *RadixTree) Add(str string, content interface{}) {
+// Add inserts a string into the trie, it returns the node that it
+// inserts (for testing purposes)
+func (tree *RadixTree) Add(
+	str string, content interface{}) *radixNode {
 
 	// Bail out if null
 	if str == "" {
-		return
+		return &radixNode{}
 	}
 
 	// Convert input to rune slice
@@ -154,6 +156,7 @@ func (tree *RadixTree) Add(str string, content interface{}) {
 	// Set the content only on the leaf node
 	leaf.SetToCollect()
 	leaf.SetContent(content)
+	return leaf
 }
 
 // The brains behind the adding, handles all cases for adding new keys
@@ -197,6 +200,7 @@ func (tree *RadixTree) add(
 
 					// Are there more children?
 					if len(child.Children()) > 0 {
+						child.OrBitMask(bitMask)
 						tree.add(child, input[i+1:], bitMask, depth+1)
 					}
 				}
@@ -204,21 +208,31 @@ func (tree *RadixTree) add(
 
 				// Else it's not a match, check if we've exhausted the
 				// chance of it existing in another sibling, then:
-				if childIndex == len(node.Children())-1 {
-
-					// If it's the first letter, just insert to node
-					// (not child)
-					if i == 0 {
-						return node.NewChild(input[i:])
-					}
+				if i > 0 {
 
 					// Break the child at i into 2 nodes
 					tree.nodeCount++
 					child.Break(i)
 
 					if len(input[i:]) > 0 {
+						child.OrBitMask(bitMask)
 						tree.nodeCount++
 						return child.NewChild(input[i:])
+					}
+				} else {
+
+					// If there are more nodes to be seen, continue
+					if childIndex+1 < len(node.Children()) {
+						break
+					}
+
+					// If it's the first letter, just insert to node
+					// (not child)
+					if i == 0 {
+
+						node.OrBitMask(bitMask)
+						tree.nodeCount++
+						return node.NewChild(input[i:])
 					}
 				}
 			}
