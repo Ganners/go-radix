@@ -22,6 +22,41 @@ func NewRadixTree() *RadixTree {
 	}
 }
 
+// FuzzySearch launches the fuzzySearch() method if the search is valid. Here,
+// unlike with prefix search, we do not accept an empty string.
+func (tree *RadixTree) FuzzySearch(str string) []string {
+
+	if len(tree.root.Children()) == 0 {
+		return []string{}
+	}
+
+	if str == "" {
+		return []string{}
+	}
+
+	return tree.fuzzySearch(
+		[]rune(str),
+		tree.root,
+		0,
+		[]rune{})
+}
+
+// fuzzySearch performs a non-prefix search with some element of 'fuzz',
+// although this is somewhat restricted in that it won't cater for large sparse
+// string segments.
+//
+// The fuzziness is achieved through bitwise operations that check if under a
+// given node, the letters we are searching for exist. If they do then descend
+func (tree *RadixTree) fuzzySearch(
+	str []rune,
+	node *radixNode,
+	index int,
+	found []rune,
+) []string {
+
+	return []string{}
+}
+
 // PrefixSearch executes the fastest form of search, whereby it iterates
 // through the letters starting from index 0
 //
