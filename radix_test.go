@@ -1,6 +1,7 @@
 package radix
 
 import (
+	"fmt"
 	"reflect"
 	"strconv"
 	"strings"
@@ -368,6 +369,7 @@ func TestAddBitMaskSet(t *testing.T) {
 	// niagra falls
 	{
 		node := root.Children()[0]
+		fmt.Printf("%s", node.String())
 
 		expected := genBitMask([]rune{
 			'o', 'v', 'e', 'm', 'b', 'r',
