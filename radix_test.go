@@ -172,11 +172,10 @@ func TestInsertShorter(t *testing.T) {
 		root: &radixNode{
 			children: []*radixNode{
 				{
-					key:     []rune("rabb"),
+					key:     []rune("rabbi"),
 					content: struct{}{},
 					children: []*radixNode{
-						{key: []rune("it"), content: struct{}{}},
-						{key: []rune("i"), content: struct{}{}},
+						{key: []rune("t"), content: struct{}{}},
 					},
 				},
 			},
@@ -201,11 +200,10 @@ func TestInsertEvenShorter(t *testing.T) {
 		root: &radixNode{
 			children: []*radixNode{
 				{
-					key:     []rune("ra"),
+					key:     []rune("rab"),
 					content: struct{}{},
 					children: []*radixNode{
-						{key: []rune("bbit"), content: struct{}{}},
-						{key: []rune("b"), content: struct{}{}},
+						{key: []rune("bit"), content: struct{}{}},
 					},
 				},
 			},
@@ -326,8 +324,8 @@ func TestPrefixSearchDiffByOne(t *testing.T) {
 	r.Add("rabbi", struct{}{})
 
 	expected := []string{
-		"rabbit",
 		"rabbi",
+		"rabbit",
 	}
 
 	res := r.PrefixSearch("rab")

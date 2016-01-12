@@ -20,6 +20,9 @@ type radixNode struct {
 
 	// Content associated with this node
 	content interface{}
+
+	// Is this a word?
+	doCollect bool
 }
 
 // Returns the key run slice
@@ -46,6 +49,17 @@ func (rn *radixNode) SetContent(content interface{}) {
 // to be of any use
 func (rn *radixNode) Content() interface{} {
 	return rn.content
+}
+
+// Sets the node to be collected (this means it's a string that was
+// inserted)
+func (rn *radixNode) SetToCollect() {
+	rn.doCollect = true
+}
+
+// Returns if this is a node which should be collected or not
+func (rn *radixNode) Collect() bool {
+	return rn.doCollect
 }
 
 // -----------------------------------------------------------------------------

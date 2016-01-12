@@ -89,6 +89,10 @@ func (tree *RadixTree) collect(node *radixNode, prefix []rune) []string {
 
 	collected := []string{}
 
+	if node.Collect() {
+		collected = append(collected, string(prefix))
+	}
+
 	// Recursively append
 	for _, child := range node.Children() {
 		runes := append(prefix, child.Key()...)
@@ -112,6 +116,7 @@ func (tree *RadixTree) Add(str string, content interface{}) {
 	tree.stringCount++
 
 	// Set the content only on the leaf node
+	leaf.SetToCollect()
 	leaf.SetContent(content)
 }
 
@@ -164,17 +169,6 @@ func (tree *RadixTree) add(node *radixNode, input []rune, depth int) *radixNode 
 					// (not child)
 					if i == 0 {
 						return node.NewChild(input[i:])
-					}
-
-					// If theres a single letter difference, we
-					// actually need to break one before so we have a
-					// prefix
-					//
-					// For an example of where this works, look at
-					// TestInsertShorter and TestInsertEvenShorter in
-					// the tests
-					if input[i : i+1][0] == 0 {
-						i -= 1
 					}
 
 					// Break the child at i into 2 nodes
