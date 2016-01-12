@@ -228,12 +228,9 @@ func (tree *RadixTree) add(
 
 					// If it's the first letter, just insert to node
 					// (not child)
-					if i == 0 {
-
-						node.OrBitMask(bitMask)
-						tree.nodeCount++
-						return node.NewChild(input[i:])
-					}
+					node.OrBitMask(bitMask)
+					tree.nodeCount++
+					return node.NewChild(input[i:])
 				}
 			}
 		}
