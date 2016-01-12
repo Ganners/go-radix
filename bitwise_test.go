@@ -70,3 +70,70 @@ func TestNumBitsSet64(t *testing.T) {
 		}
 	}
 }
+
+// Tests that generated bitmasks appear how we expect
+func TestGenBitMask(t *testing.T) {
+
+	testCases := []struct {
+		Input        []rune
+		ExpectedBits []uint32
+	}{
+		{
+			Input:        []rune{'a'},
+			ExpectedBits: []uint32{1},
+		},
+		{
+			Input:        []rune{'A'},
+			ExpectedBits: []uint32{1},
+		},
+		{
+			Input:        []rune{'z'},
+			ExpectedBits: []uint32{26},
+		},
+		{
+			Input:        []rune{'Z'},
+			ExpectedBits: []uint32{26},
+		},
+		{
+			Input:        []rune{'a', 'b', 'c', 'A', 'B', 'C'},
+			ExpectedBits: []uint32{26, 27, 28},
+		},
+		{
+			Input:        []rune{'0'},
+			ExpectedBits: []uint32{27},
+		},
+		{
+			Input:        []rune{'1'},
+			ExpectedBits: []uint32{27},
+		},
+		{
+			Input:        []rune{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'},
+			ExpectedBits: []uint32{27, 28, 29, 30, 31},
+		},
+		{
+			Input:        []rune{'.', ',', '-'},
+			ExpectedBits: []uint32{32},
+		},
+		{
+			Input:        []rune{'∂'},
+			ExpectedBits: []uint32{32},
+		},
+	}
+
+	for _, test := range testCases {
+
+		// Call the function
+		res := genBitMask(test.Input)
+
+		for _, bit := range test.ExpectedBits {
+
+			// Check if the bit is set
+			if (res &^ (1 << bit)) == 0 {
+				t.Errorf("Expected bit %d to be set for input %s, got uint32: %d",
+					bit,
+					string(test.Input),
+					res)
+			}
+		}
+	}
+}

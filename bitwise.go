@@ -3,6 +3,8 @@
 // masks.
 package radix
 
+import "log"
+
 // Counts the number of bits that are set using voodoo black magic from
 // the gates of hell. Simplified as much as possible
 //
@@ -35,4 +37,43 @@ func numBitsSet64(n uint64) int {
 	n = (((n + (n >> 4)) & c) * d) >> 56
 
 	return int(n)
+}
+
+// Generates a bit mask based on the rune slice, compressing it to 32 bits.
+// Priority is given to letters, numbers are compress by half, special
+// characters are the final bit.
+func genBitMask(str []rune) uint32 {
+
+	mask := uint32(0)
+
+	for _, r := range str {
+
+		setBit := uint32(0)
+
+		if r >= 'a' && r <= 'z' {
+			// A-Z and a-z should map the same bits 1 - 26
+			setBit = uint32(r - 97) // 'a' is 97
+
+		} else if r >= 'A' && r <= 'Z' {
+			// Fit into a-z range by negating to 0 index
+			setBit = uint32(r - 65) // 'A' is 65
+
+		} else if r >= '0' && r <= '9' {
+			// Half the number and add to start value
+			number := uint32(r - 48)
+			setBit = (number / 2) + 26
+			log.Println(setBit)
+
+		} else {
+			// All other characters (special characters etc.) will appear as character
+			// 32
+			setBit = 31
+
+		}
+
+		// Set the bit
+		mask |= (1 << setBit)
+	}
+
+	return mask
 }
