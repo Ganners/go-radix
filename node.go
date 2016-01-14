@@ -91,6 +91,7 @@ func (rn *radixNode) NewChild(key []rune) *radixNode {
 		key:        key,
 		childRunes: 0,
 		parent:     rn,
+		bitMask:    genBitMask(key),
 	}
 	rn.children = append(rn.children, newNode)
 
@@ -119,8 +120,11 @@ func (rn *radixNode) Break(index int) (*radixNode, error) {
 	child.children = children
 	child.SetContent(content)
 
-	// Set the child to have the bits it's parents once had
-	child.OrBitMask(rn.bitMask)
+	// Rebuild the child bit mask (contain itself and it's children)
+	child.OrBitMask(genBitMask(child.Key()))
+	for _, childsChild := range child.Children() {
+		child.OrBitMask(childsChild.BitMask())
+	}
 
 	// Generate a bitmask on the parent, should have it's child's runes
 	// set too

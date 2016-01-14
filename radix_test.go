@@ -1,6 +1,7 @@
 package radix
 
 import (
+	"log"
 	"reflect"
 	"strconv"
 	"strings"
@@ -345,21 +346,18 @@ func TestAddBitMaskSet(t *testing.T) {
 	r.Add("nova", struct{}{})
 	r.Add("niagra falls", struct{}{})
 	r.Add("noel", struct{}{})
-	//fmt.Printf("%s", r.String())
 
 	// The first node should the letters below n
 	{
 		expected := genBitMask([]rune{
-			'o', 'v', 'e', 'm', 'b', 'r',
+			'n', 'o', 'v', 'e', 'm', 'b', 'r',
 			'a',
 			'i', 'g', ' ', 'f', 'l', 's'})
 
-		res := root.IsBitMaskSet(expected)
-
-		if res == false {
+		if root.BitMask() != expected {
 			expectedStr := strconv.FormatInt(int64(expected), 2)
 			gotStr := strconv.FormatInt(int64(root.BitMask()), 2)
-			t.Errorf("Bitmask %s did not contain the expected bits %s",
+			t.Errorf("Bitmask %s did not match %s",
 				gotStr, expectedStr)
 		}
 	}
@@ -373,12 +371,40 @@ func TestAddBitMaskSet(t *testing.T) {
 			'o', 'v', 'e', 'm', 'b', 'r',
 			'a', 'l'})
 
-		res := node.IsBitMaskSet(expected)
-
-		if res == false {
+		if node.BitMask() != expected {
 			expectedStr := strconv.FormatInt(int64(expected), 2)
 			gotStr := strconv.FormatInt(int64(node.BitMask()), 2)
-			t.Errorf("Bitmask %s did not contain the expected bits %s",
+			t.Errorf("Bitmask %s did not match %s",
+				gotStr, expectedStr)
+		}
+	}
+
+	// The next node down should be a v, which drops the l and o
+	{
+		node := root.Children()[0].Children()[0]
+
+		expected := genBitMask([]rune{
+			'v', 'e', 'm', 'b', 'r', 'a'})
+
+		if node.BitMask() != expected {
+			expectedStr := strconv.FormatInt(int64(expected), 2)
+			gotStr := strconv.FormatInt(int64(node.BitMask()), 2)
+			t.Errorf("Bitmask %s did not match %s",
+				gotStr, expectedStr)
+		}
+	}
+
+	// The next node down should be a ember, which has no children
+	{
+		node := root.Children()[0].Children()[0].Children()[0]
+
+		expected := genBitMask([]rune{
+			'e', 'm', 'b', 'r'})
+
+		if node.BitMask() != expected {
+			expectedStr := strconv.FormatInt(int64(expected), 2)
+			gotStr := strconv.FormatInt(int64(node.BitMask()), 2)
+			t.Errorf("Bitmask %s did not match %s",
 				gotStr, expectedStr)
 		}
 	}
@@ -386,6 +412,31 @@ func TestAddBitMaskSet(t *testing.T) {
 }
 
 // Test an in-tree search (non-prefix) with some element of fuzz
-func TestTraverseFuzzy(t *testing.T) {
+func TestFuzzySearch(t *testing.T) {
 
+	// Grab pre-created tree
+	r := NewRadixTree()
+	r.Add("romane", struct{}{})
+	r.Add("romanus", struct{}{})
+	r.Add("romulus", struct{}{})
+	r.Add("ruber", struct{}{})
+	r.Add("rubens", struct{}{})
+	r.Add("rubicon", struct{}{})
+	r.Add("rubicundus", struct{}{})
+
+	// Search for 'rom' which is 2 nodes deep
+	{
+		expected := []string{
+			"romanus",
+			"romulus",
+		}
+
+		res := r.FuzzySearch("us")
+
+		if !reflect.DeepEqual(res, expected) {
+			t.Errorf("Prefix result %+v does not matched expected %+v",
+				res, expected)
+		}
+	}
+	log.Println(r.String())
 }

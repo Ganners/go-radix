@@ -2,6 +2,7 @@ package radix
 
 import (
 	"fmt"
+	"log"
 	"strings"
 )
 
@@ -54,7 +55,56 @@ func (tree *RadixTree) fuzzySearch(
 	found []rune,
 ) []string {
 
-	return []string{}
+	searchBitMask := genBitMask(str)
+	results := []string{}
+
+	// We've found all the nodes!! WOOHOO
+	if index == len(str)-1 {
+
+		// Collect all leaves
+		log.Println("Found all in search", string(found))
+	}
+
+	if len(node.Children()) == 0 {
+		return []string{}
+	}
+
+	for _, child := range node.Children() {
+
+		// If this is the case, then somewhere inside the depth of this
+		// node there MIGHT exist what we're looking for, or it could
+		// be shallow
+		if child.IsBitMaskSet(searchBitMask) {
+
+			// Iterate letters
+			for _, letter := range child.Key() {
+				if letter == str[index] {
+					log.Println("Incrementing index, was:", index)
+					index++
+				}
+			}
+
+			found = append(found, child.Key()...)
+
+			log.Println("Found:", string(found))
+			log.Println("Index:", index)
+			log.Println("Input length:", len(str))
+
+			if index == len(str) {
+				log.Println("APPENDING COLLECTION")
+				results = append(
+					results, tree.collect(child, found)...)
+				found = []rune{}
+			} else {
+				tree.fuzzySearch(str, child, index, found)
+			}
+		} else {
+			// Reset found
+			found = found[:len(found)-len(child.Key())+1]
+		}
+	}
+
+	return results
 }
 
 // PrefixSearch executes the fastest form of search, whereby it iterates
@@ -195,12 +245,13 @@ func (tree *RadixTree) add(
 			// If the letter is a match
 			if childRune == inputRune {
 
+				child.OrBitMask(genBitMask(input[i:]))
+
 				// Are we on the last character of keys?
 				if i+1 == len(child.Key()) {
 
 					// Are there more children?
 					if len(child.Children()) > 0 {
-						child.OrBitMask(bitMask)
 						tree.add(child, input[i+1:], bitMask, depth+1)
 					}
 				}
@@ -215,7 +266,6 @@ func (tree *RadixTree) add(
 					child.Break(i)
 
 					if len(input[i:]) > 0 {
-						child.OrBitMask(bitMask)
 						tree.nodeCount++
 						return child.NewChild(input[i:])
 					}
@@ -228,9 +278,9 @@ func (tree *RadixTree) add(
 
 					// If it's the first letter, just insert to node
 					// (not child)
-					node.OrBitMask(bitMask)
 					tree.nodeCount++
-					return node.NewChild(input[i:])
+					newNode := node.NewChild(input[i:])
+					return newNode
 				}
 			}
 		}
