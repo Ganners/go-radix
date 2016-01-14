@@ -24,14 +24,16 @@ func NewRadixTree() *RadixTree {
 
 // FuzzySearch launches the fuzzySearch() method if the search is valid. Here,
 // unlike with prefix search, we do not accept an empty string.
-func (tree *RadixTree) FuzzySearch(str string) []string {
+func (tree *RadixTree) FuzzySearch(
+	str string,
+) ([]string, []interface{}) {
 
 	if len(tree.root.Children()) == 0 {
-		return []string{}
+		return []string{}, []interface{}{}
 	}
 
 	if str == "" {
-		return []string{}
+		return []string{}, []interface{}{}
 	}
 
 	return tree.fuzzySearch(
@@ -52,13 +54,14 @@ func (tree *RadixTree) fuzzySearch(
 	node *radixNode,
 	index int,
 	found []rune,
-) []string {
+) ([]string, []interface{}) {
 
 	searchBitMask := genBitMask(str[index:])
-	results := []string{}
+	collectedKeys := []string{}
+	collectedContent := []interface{}{}
 
 	if len(node.Children()) == 0 {
-		return []string{}
+		return []string{}, []interface{}{}
 	}
 
 	for _, child := range node.Children() {
@@ -76,36 +79,40 @@ func (tree *RadixTree) fuzzySearch(
 			}
 
 			if index == len(str) {
-				results = append(
-					results,
-					tree.collect(
-						child,
-						append(found, child.Key()...),
-					)...)
+
+				colKeys, colContent := tree.collect(
+					child,
+					append(found, child.Key()...),
+				)
+				collectedKeys = append(collectedKeys, colKeys...)
+				collectedContent = append(collectedContent, colContent...)
 			} else {
-				results = append(
-					results,
-					tree.fuzzySearch(
-						str,
-						child,
-						index,
-						append(found, child.Key()...),
-					)...)
+
+				colKeys, colContent := tree.fuzzySearch(
+					str,
+					child,
+					index,
+					append(found, child.Key()...),
+				)
+				collectedKeys = append(collectedKeys, colKeys...)
+				collectedContent = append(collectedContent, colContent...)
 			}
 		}
 	}
 
-	return results
+	return collectedKeys, collectedContent
 }
 
 // PrefixSearch executes the fastest form of search, whereby it iterates
 // through the letters starting from index 0
 //
 // Search with an empty string should return everything
-func (tree *RadixTree) PrefixSearch(str string) []string {
+func (tree *RadixTree) PrefixSearch(
+	str string,
+) ([]string, []interface{}) {
 
 	if len(tree.root.Children()) == 0 {
-		return []string{}
+		return []string{}, []interface{}{}
 	}
 
 	return tree.prefixSearch(
@@ -121,7 +128,7 @@ func (tree *RadixTree) prefixSearch(
 	node *radixNode,
 	index int,
 	found []rune,
-) []string {
+) ([]string, []interface{}) {
 
 	if index+1 > len(str) {
 
@@ -152,30 +159,38 @@ func (tree *RadixTree) prefixSearch(
 		}
 	}
 
-	return []string{}
+	return []string{}, []interface{}{}
 }
 
 // The collection will, starting from a given node, recurse and generate
 // strings from every leaf
-func (tree *RadixTree) collect(node *radixNode, prefix []rune) []string {
+func (tree *RadixTree) collect(
+	node *radixNode,
+	prefix []rune,
+) ([]string, []interface{}) {
 
 	if len(node.Children()) == 0 {
-		return []string{string(prefix)}
+		return []string{string(prefix)},
+			[]interface{}{node.Content()}
 	}
 
-	collected := []string{}
+	collectedStrings := []string{}
+	collectedContent := []interface{}{}
 
 	if node.Collect() {
-		collected = append(collected, string(prefix))
+		collectedStrings = append(collectedStrings, string(prefix))
+		collectedContent = append(collectedContent, node.Content())
 	}
 
 	// Recursively append
 	for _, child := range node.Children() {
 		runes := append(prefix, child.Key()...)
-		collected = append(collected, tree.collect(child, runes)...)
+		colKeys, colContent := tree.collect(child, runes)
+		collectedStrings = append(collectedStrings, colKeys...)
+		collectedContent = append(collectedContent, colContent...)
 	}
 
-	return collected
+	return collectedStrings, collectedContent
 }
 
 // Add inserts a string into the trie, it returns the node that it
@@ -196,6 +211,7 @@ func (tree *RadixTree) Add(
 
 	// Set the content only on the leaf node
 	leaf.SetToCollect()
+
 	leaf.SetContent(content)
 	return leaf
 }
@@ -243,7 +259,7 @@ func (tree *RadixTree) add(
 
 					// Are there more children?
 					if len(child.Children()) > 0 {
-						tree.add(child, input[i+1:], bitMask, depth+1)
+						return tree.add(child, input[i+1:], bitMask, depth+1)
 					}
 				}
 			} else {
@@ -258,7 +274,8 @@ func (tree *RadixTree) add(
 
 					if len(input[i:]) > 0 {
 						tree.nodeCount++
-						return child.NewChild(input[i:])
+						newNode := child.NewChild(input[i:])
+						return newNode
 					} else {
 
 						// If the break is less than the input then

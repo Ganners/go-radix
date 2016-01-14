@@ -7,6 +7,34 @@ import (
 	"testing"
 )
 
+// Used for the data assigned to the struct for something to compare
+// against
+type identifier struct {
+	Id string
+}
+
+// Makes sure that the keys returned match the content
+func compareKeysAndContent(
+	keys []string, content []interface{}, t *testing.T) {
+
+	if len(keys) != len(content) {
+		t.Fatalf("Keys (%d) and Content (%d) do not match in length",
+			len(keys), len(content))
+	}
+
+	for i, _ := range keys {
+		ident, ok := content[i].(identifier)
+		if !ok {
+			t.Errorf("Key %s did not return valid content", keys[i])
+		}
+		if keys[i] != ident.Id {
+			t.Errorf("Keys and content do not match. (Keys: %+v Content: %+v)",
+				keys, content)
+		}
+	}
+}
+
+// Returns a pre-built version of the Wikipedia example tree
 func getWikipediaExampleTree() *RadixTree {
 
 	return &RadixTree{
@@ -22,15 +50,21 @@ func getWikipediaExampleTree() *RadixTree {
 									key: []rune("an"),
 									children: []*radixNode{
 										{
-											key: []rune("e"),
+											key:       []rune("e"),
+											content:   identifier{"romane"},
+											doCollect: true,
 										},
 										{
-											key: []rune("us"),
+											key:       []rune("us"),
+											content:   identifier{"romanus"},
+											doCollect: true,
 										},
 									},
 								},
 								{
-									key: []rune("ulus"),
+									key:       []rune("ulus"),
+									content:   identifier{"romulus"},
+									doCollect: true,
 								},
 							},
 						},
@@ -41,10 +75,14 @@ func getWikipediaExampleTree() *RadixTree {
 									key: []rune("e"),
 									children: []*radixNode{
 										{
-											key: []rune("r"),
+											key:       []rune("r"),
+											content:   identifier{"ruber"},
+											doCollect: true,
 										},
 										{
-											key: []rune("ns"),
+											key:       []rune("ns"),
+											content:   identifier{"rubens"},
+											doCollect: true,
 										},
 									},
 								},
@@ -52,10 +90,14 @@ func getWikipediaExampleTree() *RadixTree {
 									key: []rune("ic"),
 									children: []*radixNode{
 										{
-											key: []rune("on"),
+											key:       []rune("on"),
+											content:   identifier{"rubicon"},
+											doCollect: true,
 										},
 										{
-											key: []rune("undus"),
+											key:       []rune("undus"),
+											content:   identifier{"rubicundus"},
+											doCollect: true,
 										},
 									},
 								},
@@ -113,8 +155,8 @@ func TestDrawVisualisation(t *testing.T) {
 func TestSparseInsert(t *testing.T) {
 
 	r := NewRadixTree()
-	r.Add("chocolate", struct{}{})
-	r.Add("pizza", struct{}{})
+	r.Add("chocolate", identifier{"chocolate"})
+	r.Add("pizza", identifier{"pizza"})
 
 	// Expected
 	expected := &RadixTree{
@@ -136,8 +178,8 @@ func TestSparseInsert(t *testing.T) {
 func TestInsertBreakingEnd(t *testing.T) {
 
 	r := NewRadixTree()
-	r.Add("magazine", struct{}{})
-	r.Add("magsafe", struct{}{})
+	r.Add("magazine", identifier{"magazine"})
+	r.Add("magsafe", identifier{"magsafe"})
 
 	// Expected
 	expected := &RadixTree{
@@ -165,8 +207,8 @@ func TestInsertBreakingEnd(t *testing.T) {
 func TestInsertShorter(t *testing.T) {
 
 	r := NewRadixTree()
-	r.Add("rabbit", struct{}{})
-	r.Add("rabbi", struct{}{})
+	r.Add("rabbit", identifier{"rabbit"})
+	r.Add("rabbi", identifier{"rabbi"})
 
 	// Expected
 	expected := &RadixTree{
@@ -193,8 +235,8 @@ func TestInsertShorter(t *testing.T) {
 func TestInsertEvenShorter(t *testing.T) {
 
 	r := NewRadixTree()
-	r.Add("rabbit", struct{}{})
-	r.Add("rab", struct{}{})
+	r.Add("rabbit", identifier{"rabbit"})
+	r.Add("rab", identifier{"rab"})
 
 	// Expected
 	expected := &RadixTree{
@@ -221,13 +263,13 @@ func TestInsertEvenShorter(t *testing.T) {
 func TestWikipediaExample(t *testing.T) {
 
 	r := NewRadixTree()
-	r.Add("romane", struct{}{})
-	r.Add("romanus", struct{}{})
-	r.Add("romulus", struct{}{})
-	r.Add("ruber", struct{}{})
-	r.Add("rubens", struct{}{})
-	r.Add("rubicon", struct{}{})
-	r.Add("rubicundus", struct{}{})
+	r.Add("romane", identifier{"romane"})
+	r.Add("romanus", identifier{"romanus"})
+	r.Add("romulus", identifier{"romulus"})
+	r.Add("ruber", identifier{"ruber"})
+	r.Add("rubens", identifier{"rubens"})
+	r.Add("rubicon", identifier{"rubicon"})
+	r.Add("rubicundus", identifier{"rubicundus"})
 
 	// Expected
 	expected := getWikipediaExampleTree()
@@ -242,7 +284,14 @@ func TestWikipediaExample(t *testing.T) {
 func TestPrefixSearch(t *testing.T) {
 
 	// Grab pre-created tree
-	r := getWikipediaExampleTree()
+	r := NewRadixTree()
+	r.Add("romane", identifier{"romane"})
+	r.Add("romanus", identifier{"romanus"})
+	r.Add("romulus", identifier{"romulus"})
+	r.Add("ruber", identifier{"ruber"})
+	r.Add("rubens", identifier{"rubens"})
+	r.Add("rubicon", identifier{"rubicon"})
+	r.Add("rubicundus", identifier{"rubicundus"})
 
 	// Search for 'rom' which is 2 nodes deep
 	{
@@ -252,12 +301,14 @@ func TestPrefixSearch(t *testing.T) {
 			"romulus",
 		}
 
-		res := r.PrefixSearch("rom")
+		keys, content := r.PrefixSearch("rom")
 
-		if !reflect.DeepEqual(res, expected) {
+		if !reflect.DeepEqual(keys, expected) {
 			t.Errorf("Prefix result %+v does not matched expected %+v",
-				res, expected)
+				keys, expected)
 		}
+
+		compareKeysAndContent(keys, content, t)
 	}
 
 	// Search for the two 'rubi' which are 3 nodes deep
@@ -267,12 +318,14 @@ func TestPrefixSearch(t *testing.T) {
 			"rubicundus",
 		}
 
-		res := r.PrefixSearch("rubi")
+		keys, content := r.PrefixSearch("rubi")
 
-		if !reflect.DeepEqual(res, expected) {
+		if !reflect.DeepEqual(keys, expected) {
 			t.Errorf("Prefix result %+v does not matched expected %+v",
-				res, expected)
+				keys, expected)
 		}
+
+		compareKeysAndContent(keys, content, t)
 	}
 
 	// Searching for 'r' should return everything in this trie
@@ -287,12 +340,14 @@ func TestPrefixSearch(t *testing.T) {
 			"rubicundus",
 		}
 
-		res := r.PrefixSearch("r")
+		keys, content := r.PrefixSearch("r")
 
-		if !reflect.DeepEqual(res, expected) {
+		if !reflect.DeepEqual(keys, expected) {
 			t.Errorf("Prefix result %+v does not matched expected %+v",
-				res, expected)
+				keys, expected)
 		}
+
+		compareKeysAndContent(keys, content, t)
 	}
 
 	// Empty searches should look at all nodes and return
@@ -307,12 +362,14 @@ func TestPrefixSearch(t *testing.T) {
 			"rubicundus",
 		}
 
-		res := r.PrefixSearch("")
+		keys, content := r.PrefixSearch("")
 
-		if !reflect.DeepEqual(res, expected) {
+		if !reflect.DeepEqual(keys, expected) {
 			t.Errorf("Prefix result %+v does not matched expected %+v",
-				res, expected)
+				keys, expected)
 		}
+
+		compareKeysAndContent(keys, content, t)
 	}
 }
 
@@ -321,30 +378,32 @@ func TestPrefixSearch(t *testing.T) {
 func TestPrefixSearchDiffByOne(t *testing.T) {
 
 	r := NewRadixTree()
-	r.Add("rabbit", struct{}{})
-	r.Add("rabbi", struct{}{})
+	r.Add("rabbit", identifier{"rabbit"})
+	r.Add("rabbi", identifier{"rabbi"})
 
 	expected := []string{
 		"rabbi",
 		"rabbit",
 	}
 
-	res := r.PrefixSearch("rab")
+	keys, content := r.PrefixSearch("rab")
 
-	if !reflect.DeepEqual(res, expected) {
+	if !reflect.DeepEqual(keys, expected) {
 		t.Errorf("Prefix result %+v does not matched expected %+v",
-			res, expected)
+			keys, expected)
 	}
+
+	compareKeysAndContent(keys, content, t)
 }
 
 // Test the bit masks propogate down the nodes as we would expect
 func TestAddBitMaskSet(t *testing.T) {
 
 	r := NewRadixTree()
-	root := r.Add("november", struct{}{})
-	r.Add("nova", struct{}{})
-	r.Add("niagra falls", struct{}{})
-	r.Add("noel", struct{}{})
+	root := r.Add("november", identifier{"november"})
+	r.Add("nova", identifier{"nova"})
+	r.Add("niagra falls", identifier{"falls"})
+	r.Add("noel", identifier{"noel"})
 
 	// The first node should the letters below n
 	{
@@ -415,13 +474,13 @@ func TestFuzzySearch(t *testing.T) {
 
 	// Grab pre-created tree
 	r := NewRadixTree()
-	r.Add("romane", struct{}{})
-	r.Add("romanus", struct{}{})
-	r.Add("romulus", struct{}{})
-	r.Add("ruber", struct{}{})
-	r.Add("rubens", struct{}{})
-	r.Add("rubicon", struct{}{})
-	r.Add("rubicundus", struct{}{})
+	r.Add("romane", identifier{"romane"})
+	r.Add("romanus", identifier{"romanus"})
+	r.Add("romulus", identifier{"romulus"})
+	r.Add("ruber", identifier{"ruber"})
+	r.Add("rubens", identifier{"rubens"})
+	r.Add("rubicon", identifier{"rubicon"})
+	r.Add("rubicundus", identifier{"rubicundus"})
 
 	// Search for 'us', which is contained at the end of 3
 	{
@@ -432,12 +491,14 @@ func TestFuzzySearch(t *testing.T) {
 			"rubicundus",
 		}
 
-		res := r.FuzzySearch("us")
+		keys, content := r.FuzzySearch("us")
 
-		if !reflect.DeepEqual(res, expected) {
+		if !reflect.DeepEqual(keys, expected) {
 			t.Errorf("Prefix result %+v does not matched expected %+v",
-				res, expected)
+				keys, expected)
 		}
+
+		compareKeysAndContent(keys, content, t)
 	}
 
 	// Search for 'an' which is contained in 2
@@ -447,12 +508,14 @@ func TestFuzzySearch(t *testing.T) {
 			"romanus",
 		}
 
-		res := r.FuzzySearch("an")
+		keys, content := r.FuzzySearch("an")
 
-		if !reflect.DeepEqual(res, expected) {
+		if !reflect.DeepEqual(keys, expected) {
 			t.Errorf("Prefix result %+v does not matched expected %+v",
-				res, expected)
+				keys, expected)
 		}
+
+		compareKeysAndContent(keys, content, t)
 	}
 
 	// Search for 'rubicundus' which is an exact match
@@ -461,24 +524,28 @@ func TestFuzzySearch(t *testing.T) {
 			"rubicundus",
 		}
 
-		res := r.FuzzySearch("rubicundus")
+		keys, content := r.FuzzySearch("rubicundus")
 
-		if !reflect.DeepEqual(res, expected) {
+		if !reflect.DeepEqual(keys, expected) {
 			t.Errorf("Prefix result %+v does not matched expected %+v",
-				res, expected)
+				keys, expected)
 		}
+
+		compareKeysAndContent(keys, content, t)
 	}
 
 	// Empty search should return zilch
 	{
 		expected := []string{}
 
-		res := r.FuzzySearch("")
+		keys, content := r.FuzzySearch("")
 
-		if !reflect.DeepEqual(res, expected) {
+		if !reflect.DeepEqual(keys, expected) {
 			t.Errorf("Prefix result %+v does not matched expected %+v",
-				res, expected)
+				keys, expected)
 		}
+
+		compareKeysAndContent(keys, content, t)
 	}
 
 	// r search should return all
@@ -493,11 +560,13 @@ func TestFuzzySearch(t *testing.T) {
 			"rubicundus",
 		}
 
-		res := r.FuzzySearch("r")
+		keys, content := r.FuzzySearch("r")
 
-		if !reflect.DeepEqual(res, expected) {
+		if !reflect.DeepEqual(keys, expected) {
 			t.Errorf("Prefix result %+v does not matched expected %+v",
-				res, expected)
+				keys, expected)
 		}
+
+		compareKeysAndContent(keys, content, t)
 	}
 }
