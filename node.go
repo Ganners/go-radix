@@ -110,6 +110,7 @@ func (rn *radixNode) Break(index int) (*radixNode, error) {
 	sufKey := rn.Key()[index:]
 	content := rn.Content()
 	children := rn.Children()
+	collect := rn.Collect()
 
 	// Set the vars, move children and add the child
 	rn.key = preKey
@@ -119,6 +120,10 @@ func (rn *radixNode) Break(index int) (*radixNode, error) {
 	child := rn.NewChild(sufKey)
 	child.children = children
 	child.SetContent(content)
+
+	// Move the collects around (if need be)
+	rn.doCollect = false
+	child.doCollect = collect
 
 	// Rebuild the child bit mask (contain itself and it's children)
 	child.OrBitMask(genBitMask(child.Key()))

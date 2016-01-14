@@ -259,6 +259,12 @@ func (tree *RadixTree) add(
 					if len(input[i:]) > 0 {
 						tree.nodeCount++
 						return child.NewChild(input[i:])
+					} else {
+
+						// If the break is less than the input then
+						// return the child (which is the parent of any
+						// new child)
+						return child
 					}
 				} else {
 
