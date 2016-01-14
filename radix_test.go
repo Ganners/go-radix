@@ -429,6 +429,7 @@ func TestFuzzySearch(t *testing.T) {
 		expected := []string{
 			"romanus",
 			"romulus",
+			"rubicundus",
 		}
 
 		res := r.FuzzySearch("us")

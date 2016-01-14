@@ -84,23 +84,30 @@ func (tree *RadixTree) fuzzySearch(
 				}
 			}
 
-			found = append(found, child.Key()...)
-
-			log.Println("Found:", string(found))
-			log.Println("Index:", index)
-			log.Println("Input length:", len(str))
+			// log.Println("Appening key:", string(child.Key()))
+			// log.Println("Found:", string(found))
+			// log.Println("Index:", index)
+			// log.Println("Input length:", len(str))
 
 			if index == len(str) {
-				log.Println("APPENDING COLLECTION")
 				results = append(
-					results, tree.collect(child, found)...)
-				found = []rune{}
+					results,
+					tree.collect(
+						child,
+						append(found, child.Key()...),
+					)...)
 			} else {
-				tree.fuzzySearch(str, child, index, found)
+				results = append(
+					results,
+					tree.fuzzySearch(
+						str,
+						child,
+						index,
+						append(found, child.Key()...),
+					)...)
 			}
 		} else {
-			// Reset found
-			found = found[:len(found)-len(child.Key())+1]
+
 		}
 	}
 
