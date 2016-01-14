@@ -1,7 +1,6 @@
 package radix
 
 import (
-	"log"
 	"reflect"
 	"strconv"
 	"strings"
@@ -424,11 +423,12 @@ func TestFuzzySearch(t *testing.T) {
 	r.Add("rubicon", struct{}{})
 	r.Add("rubicundus", struct{}{})
 
-	// Search for 'rom' which is 2 nodes deep
+	// Search for 'us', which is contained at the end of 3
 	{
 		expected := []string{
 			"romanus",
 			"romulus",
+			"rubens", // <-- Fuzzy!
 			"rubicundus",
 		}
 
@@ -439,5 +439,65 @@ func TestFuzzySearch(t *testing.T) {
 				res, expected)
 		}
 	}
-	log.Println(r.String())
+
+	// Search for 'an' which is contained in 2
+	{
+		expected := []string{
+			"romane",
+			"romanus",
+		}
+
+		res := r.FuzzySearch("an")
+
+		if !reflect.DeepEqual(res, expected) {
+			t.Errorf("Prefix result %+v does not matched expected %+v",
+				res, expected)
+		}
+	}
+
+	// Search for 'rubicundus' which is an exact match
+	{
+		expected := []string{
+			"rubicundus",
+		}
+
+		res := r.FuzzySearch("rubicundus")
+
+		if !reflect.DeepEqual(res, expected) {
+			t.Errorf("Prefix result %+v does not matched expected %+v",
+				res, expected)
+		}
+	}
+
+	// Empty search should return zilch
+	{
+		expected := []string{}
+
+		res := r.FuzzySearch("")
+
+		if !reflect.DeepEqual(res, expected) {
+			t.Errorf("Prefix result %+v does not matched expected %+v",
+				res, expected)
+		}
+	}
+
+	// r search should return all
+	{
+		expected := []string{
+			"romane",
+			"romanus",
+			"romulus",
+			"ruber",
+			"rubens",
+			"rubicon",
+			"rubicundus",
+		}
+
+		res := r.FuzzySearch("r")
+
+		if !reflect.DeepEqual(res, expected) {
+			t.Errorf("Prefix result %+v does not matched expected %+v",
+				res, expected)
+		}
+	}
 }

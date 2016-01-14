@@ -2,7 +2,6 @@ package radix
 
 import (
 	"fmt"
-	"log"
 	"strings"
 )
 
@@ -55,15 +54,8 @@ func (tree *RadixTree) fuzzySearch(
 	found []rune,
 ) []string {
 
-	searchBitMask := genBitMask(str)
+	searchBitMask := genBitMask(str[index:])
 	results := []string{}
-
-	// We've found all the nodes!! WOOHOO
-	if index == len(str)-1 {
-
-		// Collect all leaves
-		log.Println("Found all in search", string(found))
-	}
 
 	if len(node.Children()) == 0 {
 		return []string{}
@@ -79,15 +71,9 @@ func (tree *RadixTree) fuzzySearch(
 			// Iterate letters
 			for _, letter := range child.Key() {
 				if letter == str[index] {
-					log.Println("Incrementing index, was:", index)
 					index++
 				}
 			}
-
-			// log.Println("Appening key:", string(child.Key()))
-			// log.Println("Found:", string(found))
-			// log.Println("Index:", index)
-			// log.Println("Input length:", len(str))
 
 			if index == len(str) {
 				results = append(
@@ -106,8 +92,6 @@ func (tree *RadixTree) fuzzySearch(
 						append(found, child.Key()...),
 					)...)
 			}
-		} else {
-
 		}
 	}
 
