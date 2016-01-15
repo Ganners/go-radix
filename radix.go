@@ -73,8 +73,10 @@ func (tree *RadixTree) fuzzySearch(
 
 			// Iterate letters
 			for _, letter := range child.Key() {
-				if letter == str[index] {
-					index++
+				if index+1 <= len(str) {
+					if letter == str[index] {
+						index++
+					}
 				}
 			}
 
@@ -243,11 +245,15 @@ func (tree *RadixTree) add(
 
 			// Add some safety to the input
 			if i > len(input) {
-				continue
+				break
+			}
+
+			var inputRune rune
+			if i+1 <= len(input) {
+				inputRune = input[i : i+1][0]
 			}
 
 			childRune := child.Key()[i : i+1][0]
-			inputRune := input[i : i+1][0]
 
 			// If the letter is a match
 			if childRune == inputRune {
