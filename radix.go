@@ -5,6 +5,10 @@ import (
 	"strings"
 )
 
+const (
+	fuzzyIterationLimit = 2
+)
+
 // RadixTree wraps the root, provides all functionality to add, search
 // and so on.
 type RadixTree struct {
@@ -40,6 +44,8 @@ func (tree *RadixTree) FuzzySearch(
 		[]rune(str),
 		tree.root,
 		0,
+		0,
+		0,
 		[]rune{})
 }
 
@@ -53,6 +59,8 @@ func (tree *RadixTree) fuzzySearch(
 	str []rune,
 	node *radixNode,
 	index int,
+	lastIndexIteration int,
+	iteration int,
 	found []rune,
 ) ([]string, []interface{}) {
 
@@ -71,11 +79,25 @@ func (tree *RadixTree) fuzzySearch(
 		// be shallow
 		if child.IsBitMaskSet(searchBitMask) {
 
+			iteration++
+
+			// Check if there has been too much of a gap since the last
+			// letter was found, we don't want it to be THAT fuzzy
+			if lastIndexIteration > 0 {
+				if (iteration - lastIndexIteration) > fuzzyIterationLimit {
+
+					// Start the search again
+					lastIndexIteration = 0
+					index = 0
+				}
+			}
+
 			// Iterate letters
 			for _, letter := range child.Key() {
 				if index+1 <= len(str) {
 					if letter == str[index] {
 						index++
+						lastIndexIteration = iteration
 					}
 				}
 			}
@@ -94,6 +116,8 @@ func (tree *RadixTree) fuzzySearch(
 					str,
 					child,
 					index,
+					lastIndexIteration,
+					iteration,
 					append(found, child.Key()...),
 				)
 				collectedKeys = append(collectedKeys, colKeys...)
