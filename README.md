@@ -1,6 +1,8 @@
 Fuzzy Radix Tree implemented in Go
 ==================================
 
+[![Build Status](https://travis-ci.org/Ganners/go-radix.svg?branch=master)](https://travis-ci.org/Ganners/go-radix)
+
 This is an implementation of a Radix tree, which is a compact prefix tree.
 There is no delete, it's not a requirement for my implementation.
 
