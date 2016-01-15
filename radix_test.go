@@ -570,3 +570,53 @@ func TestFuzzySearch(t *testing.T) {
 		compareKeysAndContent(keys, content, t)
 	}
 }
+
+// Checks if a given string is contained within a result
+func resultsShouldContain(res []string, contain string) bool {
+
+	for _, str := range res {
+		if str == contain {
+			return true
+		}
+	}
+
+	return false
+}
+
+// Run some integration fuzzy searches against some expectations from
+// our test_tree
+func TestFuzzyIntegration(t *testing.T) {
+
+	testCases := []struct {
+		Search string
+		Expect string
+	}{
+		{
+			Search: "som",
+			Expect: "somerset road, royal borough of kingston upon thames",
+		},
+		{
+			Search: "kingston",
+			Expect: "livesey close, royal borough of kingston upon thames",
+		},
+		{
+			Search: "pablo iglesia",
+			Expect: "avenida de pablo iglesias, alcobendas",
+		},
+		{
+			Search: "madrid",
+			Expect: "calle de berástegui, pueblo nuevo, madrid",
+		},
+	}
+
+	r := buildIntegrationTree()
+
+	for _, test := range testCases {
+		res, _ := r.FuzzySearch(test.Search)
+		if !resultsShouldContain(res, test.Expect) {
+			t.Errorf("Search '%s' did not contain '%s'",
+				test.Search,
+				test.Expect)
+		}
+	}
+}
