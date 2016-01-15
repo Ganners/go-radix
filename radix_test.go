@@ -606,6 +606,10 @@ func TestFuzzyIntegration(t *testing.T) {
 			Search: "madrid",
 			Expect: "calle de berástegui, pueblo nuevo, madrid",
 		},
+		{
+			Search: "se1 1ab",
+			Expect: "se1 1ab",
+		},
 	}
 
 	r := buildIntegrationTree()
@@ -614,6 +618,44 @@ func TestFuzzyIntegration(t *testing.T) {
 		res, _ := r.FuzzySearch(test.Search)
 		if !resultsShouldContain(res, test.Expect) {
 			t.Errorf("Search '%s' did not contain '%s'",
+				test.Search,
+				test.Expect)
+		}
+	}
+}
+
+// Run some integration fuzzy searches against some expectations from
+// our test_tree
+func TestFuzzyIntegrationNotExpected(t *testing.T) {
+
+	testCases := []struct {
+		Search string
+		Expect string
+	}{
+		{
+			Search: "som",
+			Expect: "livesey close, royal borough of kingston upon thames",
+		},
+		{
+			Search: "se3",
+			Expect: "tesco",
+		},
+		{
+			Search: "pablo iglesia",
+			Expect: "calle de berástegui, pueblo nuevo, madrid",
+		},
+		{
+			Search: "madrid",
+			Expect: "avenida de pablo iglesias, alcobendas",
+		},
+	}
+
+	r := buildIntegrationTree()
+
+	for _, test := range testCases {
+		res, _ := r.FuzzySearch(test.Search)
+		if resultsShouldContain(res, test.Expect) {
+			t.Errorf("Search '%s' did contain '%s', expected not to be there",
 				test.Search,
 				test.Expect)
 		}

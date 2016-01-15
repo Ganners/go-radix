@@ -10,6 +10,7 @@ func buildIntegrationTree() *RadixTree {
 	}
 
 	r := NewRadixTree()
+	r.Add("tesco", struct{}{})
 	r.Add("bellevue road, royal borough of kingston upon thames", struct{}{})
 	r.Add("bloomfield road, royal borough of kingston upon thames", struct{}{})
 	r.Add("three bridges path, royal borough of kingston upon thames", struct{}{})
@@ -50011,6 +50012,7 @@ func buildIntegrationTree() *RadixTree {
 	r.Add("calle jose del hierro, alcobendas", struct{}{})
 	r.Add("avenida de pablo iglesias, alcobendas", struct{}{})
 	r.Add("marqués de la valdavia, alcobendas", struct{}{})
+	r.Add("se1 1ab", struct{}{})
 
 	// Store a cache
 	prebuiltIntegrationTree = r
