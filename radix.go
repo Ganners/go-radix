@@ -84,7 +84,7 @@ func (tree *RadixTree) fuzzySearch(
 			// Check if there has been too much of a gap since the last
 			// letter was found, we don't want it to be THAT fuzzy
 			if lastIndexIteration > 0 {
-				if (iteration - lastIndexIteration) > fuzzyIterationLimit {
+				if (iteration - lastIndexIteration) >= fuzzyIterationLimit {
 
 					// Start the search again
 					lastIndexIteration = 0
