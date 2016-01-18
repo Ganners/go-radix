@@ -45,7 +45,6 @@ func (tree *RadixTree) FuzzySearch(
 		tree.root,
 		0,
 		0,
-		0,
 		[]rune{})
 }
 
@@ -59,7 +58,6 @@ func (tree *RadixTree) fuzzySearch(
 	str []rune,
 	node *radixNode,
 	index int,
-	lastIndexIteration int,
 	iteration int,
 	found []rune,
 ) ([]string, []interface{}) {
@@ -72,37 +70,34 @@ func (tree *RadixTree) fuzzySearch(
 		return []string{}, []interface{}{}
 	}
 
+	startIndex := index
+
 	for _, child := range node.Children() {
+
+		// Reset index for each iteration of the child
+		index = startIndex
 
 		// If this is the case, then somewhere inside the depth of this
 		// node there MIGHT exist what we're looking for, or it could
 		// be shallow
 		if child.IsBitMaskSet(searchBitMask) {
 
-			iteration++
-
-			// Check if there has been too much of a gap since the last
-			// letter was found, we don't want it to be THAT fuzzy
-			if lastIndexIteration > 0 {
-				if (iteration - lastIndexIteration) >= fuzzyIterationLimit {
-
-					// Start the search again
-					lastIndexIteration = 0
-					index = 0
-				}
-			}
-
 			// Iterate letters
 			for _, letter := range child.Key() {
-				if index+1 <= len(str) {
+				if index < len(str) {
 					if letter == str[index] {
 						index++
-						lastIndexIteration = iteration
+					}
+
+					// Small optimization, break early
+					if index >= len(str) {
+						break
 					}
 				}
+				iteration++
 			}
 
-			if index == len(str) {
+			if index >= len(str) {
 
 				colKeys, colContent := tree.collect(
 					child,
@@ -116,13 +111,15 @@ func (tree *RadixTree) fuzzySearch(
 					str,
 					child,
 					index,
-					lastIndexIteration,
 					iteration,
 					append(found, child.Key()...),
 				)
 				collectedKeys = append(collectedKeys, colKeys...)
 				collectedContent = append(collectedContent, colContent...)
 			}
+		} else {
+			// Not set, can't do anything here really
+			continue
 		}
 	}
 

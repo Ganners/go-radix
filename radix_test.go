@@ -487,6 +487,7 @@ func TestFuzzySearch(t *testing.T) {
 		expected := []string{
 			"romanus",
 			"romulus",
+			"rubens",
 			"rubicundus",
 		}
 
@@ -607,7 +608,7 @@ func TestFuzzyIntegration(t *testing.T) {
 			Expect: "calle de berástegui, pueblo nuevo, madrid",
 		},
 		{
-			Search: "se1 1ab",
+			Search: "se1",
 			Expect: "se1 1ab",
 		},
 	}
@@ -653,6 +654,7 @@ func TestFuzzyIntegrationNotExpected(t *testing.T) {
 	r := buildIntegrationTree()
 
 	for _, test := range testCases {
+
 		res, _ := r.FuzzySearch(test.Search)
 		if resultsShouldContain(res, test.Expect) {
 			t.Errorf("Search '%s' did contain '%s', expected not to be there",
