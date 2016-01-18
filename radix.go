@@ -45,6 +45,7 @@ func (tree *RadixTree) FuzzySearch(
 		tree.root,
 		0,
 		0,
+		0,
 		[]rune{})
 }
 
@@ -59,6 +60,7 @@ func (tree *RadixTree) fuzzySearch(
 	node *radixNode,
 	index int,
 	iteration int,
+	lastIncrement int,
 	found []rune,
 ) ([]string, []interface{}) {
 
@@ -86,6 +88,7 @@ func (tree *RadixTree) fuzzySearch(
 			for _, letter := range child.Key() {
 				if index < len(str) {
 					if letter == str[index] {
+						lastIncrement = iteration
 						index++
 					}
 
@@ -112,6 +115,7 @@ func (tree *RadixTree) fuzzySearch(
 					child,
 					index,
 					iteration,
+					lastIncrement,
 					append(found, child.Key()...),
 				)
 				collectedKeys = append(collectedKeys, colKeys...)

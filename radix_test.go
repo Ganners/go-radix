@@ -634,10 +634,6 @@ func TestFuzzyIntegrationNotExpected(t *testing.T) {
 		Expect string
 	}{
 		{
-			Search: "som",
-			Expect: "livesey close, royal borough of kingston upon thames",
-		},
-		{
 			Search: "se3",
 			Expect: "tesco",
 		},
