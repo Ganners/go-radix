@@ -2,6 +2,14 @@ package radix
 
 import "testing"
 
+func BenchmarkBuildTrie(b *testing.B) {
+
+	for i := 0; i < b.N; i++ {
+		prebuiltIntegrationTree = nil
+		buildIntegrationTree()
+	}
+}
+
 // Benchmarks a prefix search for 'Som'
 func BenchmarkPrefixSom(b *testing.B) {
 
