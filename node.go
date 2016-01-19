@@ -5,12 +5,12 @@ import "errors"
 // The all-important building block
 type radixNode struct {
 
-	// The key is the set of runes contained in the node
-	key []rune
+	// The key is the set of bytes contained in the node
+	key []byte
 
-	// The child runes is a bit map where 0-26 is A-Z and 27 - 32 is
+	// The child bytes is a bit map where 0-26 is A-Z and 27 - 32 is
 	// squashed into 0-9
-	childRunes int32
+	childbytes int32
 
 	// Contains a link up to the parent
 	parent *radixNode
@@ -29,7 +29,7 @@ type radixNode struct {
 }
 
 // Returns the key run slice
-func (rn *radixNode) Key() []rune {
+func (rn *radixNode) Key() []byte {
 	return rn.key
 }
 
@@ -85,11 +85,11 @@ func (rn *radixNode) Collect() bool {
 // -----------------------------------------------------------------------------
 
 // Inserts a child node
-func (rn *radixNode) NewChild(key []rune) *radixNode {
+func (rn *radixNode) NewChild(key []byte) *radixNode {
 
 	newNode := &radixNode{
 		key:        key,
-		childRunes: 0,
+		childbytes: 0,
 		parent:     rn,
 		bitMask:    genBitMask(key),
 	}
@@ -131,7 +131,7 @@ func (rn *radixNode) Break(index int) (*radixNode, error) {
 		child.OrBitMask(childsChild.BitMask())
 	}
 
-	// Generate a bitmask on the parent, should have it's child's runes
+	// Generate a bitmask on the parent, should have it's child's bytes
 	// set too
 	rn.OrBitMask(genBitMask(sufKey))
 
@@ -140,7 +140,7 @@ func (rn *radixNode) Break(index int) (*radixNode, error) {
 
 type (
 	terminate  bool
-	walkerFunc func([]rune, int, bool, bool, int) terminate
+	walkerFunc func([]byte, int, bool, bool, int) terminate
 )
 
 // WalkDepthFirst will execute a function for

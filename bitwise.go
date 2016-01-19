@@ -37,10 +37,10 @@ func numBitsSet64(n uint64) int {
 	return int(n)
 }
 
-// Generates a bit mask based on the rune slice, compressing it to 32 bits.
+// Generates a bit mask based on the byte slice, compressing it to 32 bits.
 // Priority is given to letters, numbers are compress by half, special
 // characters are the final bit.
-func genBitMask(str []rune) uint32 {
+func genBitMask(str []byte) uint32 {
 
 	mask := uint32(0)
 

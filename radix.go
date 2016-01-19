@@ -41,12 +41,12 @@ func (tree *RadixTree) FuzzySearch(
 	}
 
 	return tree.fuzzySearch(
-		[]rune(str),
+		tree.stringToBytes(str),
 		tree.root,
 		0,
 		0,
 		0,
-		[]rune{})
+		[]byte{})
 }
 
 // fuzzySearch performs a non-prefix search with some element of 'fuzz',
@@ -56,12 +56,12 @@ func (tree *RadixTree) FuzzySearch(
 // The fuzziness is achieved through bitwise operations that check if under a
 // given node, the letters we are searching for exist. If they do then descend
 func (tree *RadixTree) fuzzySearch(
-	str []rune,
+	str []byte,
 	node *radixNode,
 	index int,
 	iteration int,
 	lastIncrement int,
-	found []rune,
+	found []byte,
 ) ([]string, []interface{}) {
 
 	searchBitMask := genBitMask(str[index:])
@@ -143,18 +143,18 @@ func (tree *RadixTree) PrefixSearch(
 	}
 
 	return tree.prefixSearch(
-		[]rune(str),
+		tree.stringToBytes(str),
 		tree.root,
 		0,
-		[]rune{})
+		[]byte{})
 }
 
 // Recursively prefix-searches
 func (tree *RadixTree) prefixSearch(
-	str []rune,
+	str []byte,
 	node *radixNode,
 	index int,
-	found []rune,
+	found []byte,
 ) ([]string, []interface{}) {
 
 	if index+1 > len(str) {
@@ -193,7 +193,7 @@ func (tree *RadixTree) prefixSearch(
 // strings from every leaf
 func (tree *RadixTree) collect(
 	node *radixNode,
-	prefix []rune,
+	prefix []byte,
 ) ([]string, []interface{}) {
 
 	if len(node.Children()) == 0 {
@@ -211,8 +211,8 @@ func (tree *RadixTree) collect(
 
 	// Recursively append
 	for _, child := range node.Children() {
-		runes := append(prefix, child.Key()...)
-		colKeys, colContent := tree.collect(child, runes)
+		bytes := append(prefix, child.Key()...)
+		colKeys, colContent := tree.collect(child, bytes)
 		collectedStrings = append(collectedStrings, colKeys...)
 		collectedContent = append(collectedContent, colContent...)
 	}
@@ -230,8 +230,9 @@ func (tree *RadixTree) Add(
 		return &radixNode{}
 	}
 
-	// Convert input to rune slice
-	input := []rune(str)
+	// Convert input to byte slice
+	input := tree.stringToBytes(str)
+
 	bitMask := genBitMask(input)
 	leaf := tree.add(tree.root, input, bitMask, 0)
 	tree.stringCount++
@@ -246,7 +247,7 @@ func (tree *RadixTree) Add(
 // The brains behind the adding, handles all cases for adding new keys
 func (tree *RadixTree) add(
 	node *radixNode,
-	input []rune,
+	input []byte,
 	bitMask uint32,
 	depth int,
 ) *radixNode {
@@ -273,15 +274,15 @@ func (tree *RadixTree) add(
 				break
 			}
 
-			var inputRune rune
+			var inputbyte byte
 			if i+1 <= len(input) {
-				inputRune = input[i : i+1][0]
+				inputbyte = input[i : i+1][0]
 			}
 
-			childRune := child.Key()[i : i+1][0]
+			childbyte := child.Key()[i : i+1][0]
 
 			// If the letter is a match
-			if childRune == inputRune {
+			if childbyte == inputbyte {
 
 				child.OrBitMask(genBitMask(input[i:]))
 
@@ -343,7 +344,7 @@ func (rt *RadixTree) String() string {
 
 	rt.root.WalkDepthFirst(
 		func(
-			key []rune,
+			key []byte,
 			depth int,
 			firstAtDepth bool,
 			lastAtDepth bool,
@@ -367,4 +368,22 @@ func (rt *RadixTree) String() string {
 		}, 0)
 
 	return output
+}
+
+// Because we're converting from utf8 down, we'll max out at 255 on the
+// letter's value as to not overflow a byte
+func (rt *RadixTree) stringToBytes(str string) []byte {
+
+	bytes := make([]byte, len(str))
+
+	for i, letter := range str {
+		if letter > rune(255) {
+			// This is ignored
+			// bytes[i] = 0
+		} else {
+			bytes[i] = uint8(letter)
+		}
+	}
+
+	return bytes
 }

@@ -1,6 +1,9 @@
 package radix
 
-import "testing"
+import (
+	"math"
+	"testing"
+)
 
 type bitwiseTestCase []struct {
 	Input  int
@@ -75,47 +78,47 @@ func TestNumBitsSet64(t *testing.T) {
 func TestGenBitMask(t *testing.T) {
 
 	testCases := []struct {
-		Input        []rune
+		Input        []byte
 		ExpectedBits []uint32
 	}{
 		{
-			Input:        []rune{'a'},
+			Input:        []byte{'a'},
 			ExpectedBits: []uint32{1},
 		},
 		{
-			Input:        []rune{'A'},
+			Input:        []byte{'A'},
 			ExpectedBits: []uint32{1},
 		},
 		{
-			Input:        []rune{'z'},
+			Input:        []byte{'z'},
 			ExpectedBits: []uint32{26},
 		},
 		{
-			Input:        []rune{'Z'},
+			Input:        []byte{'Z'},
 			ExpectedBits: []uint32{26},
 		},
 		{
-			Input:        []rune{'a', 'b', 'c', 'A', 'B', 'C'},
+			Input:        []byte{'a', 'b', 'c', 'A', 'B', 'C'},
 			ExpectedBits: []uint32{26, 27, 28},
 		},
 		{
-			Input:        []rune{'0'},
+			Input:        []byte{'0'},
 			ExpectedBits: []uint32{27},
 		},
 		{
-			Input:        []rune{'1'},
+			Input:        []byte{'1'},
 			ExpectedBits: []uint32{27},
 		},
 		{
-			Input:        []rune{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'},
+			Input:        []byte{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'},
 			ExpectedBits: []uint32{27, 28, 29, 30, 31},
 		},
 		{
-			Input:        []rune{'.', ',', '-'},
+			Input:        []byte{'.', ',', '-'},
 			ExpectedBits: []uint32{32},
 		},
 		{
-			Input:        []rune{'∂'},
+			Input:        []byte{uint8(math.Min(255.0, float64('∂')))},
 			ExpectedBits: []uint32{32},
 		},
 	}
