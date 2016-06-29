@@ -281,6 +281,57 @@ func TestWikipediaExample(t *testing.T) {
 }
 
 // Test a prefix search
+func TestPrefixSearchEqualLength(t *testing.T) {
+
+	// Grab pre-created tree
+	r := NewRadixTree()
+	r.Add("+442", struct{}{})
+	r.Add("+339", struct{}{})
+	r.Add("+334", struct{}{})
+
+	{
+		matches, _ := r.PrefixSearch("+339")
+		expected := []string{"+339"}
+		if !reflect.DeepEqual(matches, expected) {
+			t.Errorf("Matches %v does not equal expected %v", matches, expected)
+		}
+	}
+
+	{
+		matches, _ := r.PrefixSearch("+338")
+		expected := []string{}
+		if !reflect.DeepEqual(matches, expected) {
+			t.Errorf("Matches %v does not equal expected %v", matches, expected)
+		}
+	}
+
+	{
+		matches, _ := r.PrefixSearch("+442")
+		expected := []string{"+442"}
+		if !reflect.DeepEqual(matches, expected) {
+			t.Errorf("Matches %v does not equal expected %v", matches, expected)
+		}
+	}
+
+	{
+		matches, _ := r.PrefixSearch("+441")
+		expected := []string{}
+		if !reflect.DeepEqual(matches, expected) {
+			t.Errorf("Matches %v does not equal expected %v", matches, expected)
+		}
+	}
+
+	{
+		matches, _ := r.PrefixSearch("+4420")
+		expected := []string{}
+		if !reflect.DeepEqual(matches, expected) {
+			t.Errorf("Matches %v does not equal expected %v", matches, expected)
+		}
+	}
+
+}
+
+// Test a prefix search
 func TestPrefixSearch(t *testing.T) {
 
 	// Grab pre-created tree

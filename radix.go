@@ -171,9 +171,16 @@ func (tree *RadixTree) prefixSearch(
 			// A matching letter has been found
 			if searchLetter == letter {
 
-				// Recurse, iterate by the number of keys in this node.
-				// There's a guarantee with prefix trees so we don't
-				// actually need to look at all letters
+				// Look at more letters if we need to
+				if len(child.Key()) >= len(str)-index {
+					index++
+					if index < len(str) {
+						searchLetter = str[index]
+						continue
+					}
+				}
+
+				// Otherwise recurse
 				newIndex := index + len(child.Key())
 				toAppend := child.Key()
 
