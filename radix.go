@@ -143,7 +143,7 @@ func (tree *RadixTree) PrefixSearch(
 		return []string{}, []interface{}{}
 	}
 
-	node, prefix, ok := tree.LongestPrefix(
+	node, prefix, ok := tree.prefixSearch(
 		[]rune(str),
 		tree.root,
 		0,
@@ -156,8 +156,29 @@ func (tree *RadixTree) PrefixSearch(
 	return tree.collect(node, prefix)
 }
 
+// Returns the longest prefix (as a string) that is found. It is like a prefix
+// search without the collect
+func (tree *RadixTree) LongestPrefix(str string) (string, bool) {
+
+	if len(tree.root.Children()) == 0 {
+		return "", false
+	}
+
+	_, prefix, ok := tree.prefixSearch(
+		[]rune(str),
+		tree.root,
+		0,
+		[]rune{})
+
+	if !ok {
+		return "", false
+	}
+
+	return string(prefix), true
+}
+
 // Recursively prefix-searches to find the longest prefix that exists
-func (tree *RadixTree) LongestPrefix(
+func (tree *RadixTree) prefixSearch(
 	str []rune,
 	node *radixNode,
 	index int,
@@ -190,7 +211,7 @@ func (tree *RadixTree) LongestPrefix(
 				newIndex := index + len(child.Key())
 				toAppend := child.Key()
 
-				return tree.LongestPrefix(
+				return tree.prefixSearch(
 					str,
 					child,
 					newIndex,
