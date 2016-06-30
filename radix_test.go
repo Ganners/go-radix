@@ -710,3 +710,64 @@ func TestFuzzyIntegrationNotExpected(t *testing.T) {
 		}
 	}
 }
+
+func testLongestPrefix(t *testing.T) {
+
+	// Grab pre-created tree
+	r := NewRadixTree()
+	r.Add("+442", struct{}{})
+	r.Add("+339", struct{}{})
+	r.Add("+334", struct{}{})
+
+	{
+		p, b := r.LongestPrefix("+44212345678")
+		expectedPrefix := "+442"
+		expectedFound := true
+
+		if p != expectedPrefix {
+			t.Errorf("Expected prefix was %s, got %s", expectedPrefix, p)
+		}
+		if b != expectedFound {
+			t.Errorf("Expected prefix found was %t, got %t", expectedFound, b)
+		}
+	}
+
+	{
+		p, b := r.LongestPrefix("+44112345678")
+		expectedPrefix := ""
+		expectedFound := false
+
+		if p != expectedPrefix {
+			t.Errorf("Expected prefix was %s, got %s", expectedPrefix, p)
+		}
+		if b != expectedFound {
+			t.Errorf("Expected prefix found was %t, got %t", expectedFound, b)
+		}
+	}
+
+	{
+		p, b := r.LongestPrefix("-44212345678")
+		expectedPrefix := ""
+		expectedFound := false
+
+		if p != expectedPrefix {
+			t.Errorf("Expected prefix was %s, got %s", expectedPrefix, p)
+		}
+		if b != expectedFound {
+			t.Errorf("Expected prefix found was %t, got %t", expectedFound, b)
+		}
+	}
+
+	{
+		p, b := r.LongestPrefix("+33921234567")
+		expectedPrefix := "+339"
+		expectedFound := true
+
+		if p != expectedPrefix {
+			t.Errorf("Expected prefix was %s, got %s", expectedPrefix, p)
+		}
+		if b != expectedFound {
+			t.Errorf("Expected prefix found was %t, got %t", expectedFound, b)
+		}
+	}
+}

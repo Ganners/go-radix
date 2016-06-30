@@ -164,17 +164,18 @@ func (tree *RadixTree) LongestPrefix(str string) (string, bool) {
 		return "", false
 	}
 
-	_, prefix, ok := tree.prefixSearch(
+	ok := false
+	_, prefix, _ := tree.prefixSearch(
 		[]rune(str),
 		tree.root,
 		0,
 		[]rune{})
 
-	if !ok {
-		return "", false
+	if len(prefix) > 0 {
+		ok = true
 	}
 
-	return string(prefix), true
+	return string(prefix), ok
 }
 
 // Recursively prefix-searches to find the longest prefix that exists
@@ -186,36 +187,42 @@ func (tree *RadixTree) prefixSearch(
 ) (*radixNode, []rune, bool) {
 
 	if index+1 > len(str) {
-		// Collect below node with found prefix
 		return node, found, true
 	}
 
-	searchLetter := str[index]
+	if len(node.Children()) == 0 {
+		return node, found, false
+	}
 
 	for _, child := range node.Children() {
+
+		lettersFound := 0
+		searchLetter := str[index]
+
 		for _, letter := range child.Key() {
 
 			// A matching letter has been found
 			if searchLetter == letter {
 
-				// Look at more letters if we need to
-				if len(child.Key()) >= len(str)-index {
-					index++
-					if index < len(str) {
-						searchLetter = str[index]
-						continue
-					}
-				}
+				lettersFound++
 
 				// Otherwise recurse
-				newIndex := index + len(child.Key())
-				toAppend := child.Key()
+				if (index+lettersFound) >= len(str) || len(child.Key()) == lettersFound {
+					newIndex := index + len(child.Key())
+					toAppend := child.Key()
 
-				return tree.prefixSearch(
-					str,
-					child,
-					newIndex,
-					append(found, toAppend...))
+					return tree.prefixSearch(
+						str,
+						child,
+						newIndex,
+						append(found, toAppend...))
+				}
+
+				if index+lettersFound < len(str) {
+					searchLetter = str[index+lettersFound]
+				}
+			} else {
+				break
 			}
 		}
 	}
