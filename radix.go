@@ -131,7 +131,8 @@ func (tree *RadixTree) fuzzySearch(
 }
 
 // PrefixSearch executes the fastest form of search, whereby it iterates
-// through the letters starting from index 0
+// through the letters starting from index 0 (finding the longest prefix) then
+// collecting on that node.
 //
 // Search with an empty string should return everything
 func (tree *RadixTree) PrefixSearch(
@@ -142,25 +143,30 @@ func (tree *RadixTree) PrefixSearch(
 		return []string{}, []interface{}{}
 	}
 
-	return tree.prefixSearch(
+	node, prefix, ok := tree.LongestPrefix(
 		[]rune(str),
 		tree.root,
 		0,
 		[]rune{})
+
+	if !ok {
+		return []string{}, []interface{}{}
+	}
+
+	return tree.collect(node, prefix)
 }
 
-// Recursively prefix-searches
-func (tree *RadixTree) prefixSearch(
+// Recursively prefix-searches to find the longest prefix that exists
+func (tree *RadixTree) LongestPrefix(
 	str []rune,
 	node *radixNode,
 	index int,
 	found []rune,
-) ([]string, []interface{}) {
+) (*radixNode, []rune, bool) {
 
 	if index+1 > len(str) {
-
 		// Collect below node with found prefix
-		return tree.collect(node, found)
+		return node, found, true
 	}
 
 	searchLetter := str[index]
@@ -184,7 +190,7 @@ func (tree *RadixTree) prefixSearch(
 				newIndex := index + len(child.Key())
 				toAppend := child.Key()
 
-				return tree.prefixSearch(
+				return tree.LongestPrefix(
 					str,
 					child,
 					newIndex,
@@ -193,7 +199,7 @@ func (tree *RadixTree) prefixSearch(
 		}
 	}
 
-	return []string{}, []interface{}{}
+	return nil, []rune{}, false
 }
 
 // The collection will, starting from a given node, recurse and generate
