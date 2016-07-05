@@ -22,7 +22,7 @@ func compareKeysAndContent(
 			len(keys), len(content))
 	}
 
-	for i, _ := range keys {
+	for i := range keys {
 		ident, ok := content[i].(identifier)
 		if !ok {
 			t.Errorf("Key %s did not return valid content", keys[i])
