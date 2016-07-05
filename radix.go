@@ -131,7 +131,8 @@ func (tree *RadixTree) fuzzySearch(
 }
 
 // PrefixSearch executes the fastest form of search, whereby it iterates
-// through the letters starting from index 0
+// through the letters starting from index 0 (finding the longest prefix) then
+// collecting on that node.
 //
 // Search with an empty string should return everything
 func (tree *RadixTree) PrefixSearch(
@@ -142,51 +143,91 @@ func (tree *RadixTree) PrefixSearch(
 		return []string{}, []interface{}{}
 	}
 
-	return tree.prefixSearch(
+	node, prefix, ok := tree.prefixSearch(
 		tree.stringToBytes(str),
 		tree.root,
 		0,
 		[]byte{})
+
+	if !ok {
+		return []string{}, []interface{}{}
+	}
+
+	return tree.collect(node, prefix)
 }
 
-// Recursively prefix-searches
+// Returns the longest prefix (as a string) that is found. It is like a prefix
+// search without the collect
+func (tree *RadixTree) LongestPrefix(str string) (string, bool) {
+
+	if len(tree.root.Children()) == 0 {
+		return "", false
+	}
+
+	ok := false
+	_, prefix, _ := tree.prefixSearch(
+		[]byte(str),
+		tree.root,
+		0,
+		[]byte{})
+
+	if len(prefix) > 0 {
+		ok = true
+	}
+
+	return string(prefix), ok
+}
+
+// Recursively prefix-searches to find the longest prefix that exists
 func (tree *RadixTree) prefixSearch(
 	str []byte,
 	node *radixNode,
 	index int,
 	found []byte,
-) ([]string, []interface{}) {
+) (*radixNode, []byte, bool) {
 
 	if index+1 > len(str) {
-
-		// Collect below node with found prefix
-		return tree.collect(node, found)
+		return node, found, true
 	}
 
-	searchLetter := str[index]
+	if len(node.Children()) == 0 {
+		return node, found, false
+	}
 
 	for _, child := range node.Children() {
+
+		lettersFound := 0
+		searchLetter := str[index]
+
 		for _, letter := range child.Key() {
 
 			// A matching letter has been found
 			if searchLetter == letter {
 
-				// Recurse, iterate by the number of keys in this node.
-				// There's a guarantee with prefix trees so we don't
-				// actually need to look at all letters
-				newIndex := index + len(child.Key())
-				toAppend := child.Key()
+				lettersFound++
 
-				return tree.prefixSearch(
-					str,
-					child,
-					newIndex,
-					append(found, toAppend...))
+				// Otherwise recurse
+				if (index+lettersFound) >= len(str) || len(child.Key()) == lettersFound {
+					newIndex := index + len(child.Key())
+					toAppend := child.Key()
+
+					return tree.prefixSearch(
+						str,
+						child,
+						newIndex,
+						append(found, toAppend...))
+				}
+
+				if index+lettersFound < len(str) {
+					searchLetter = str[index+lettersFound]
+				}
+			} else {
+				break
 			}
 		}
 	}
 
-	return []string{}, []interface{}{}
+	return nil, []byte{}, false
 }
 
 // The collection will, starting from a given node, recurse and generate

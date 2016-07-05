@@ -22,7 +22,7 @@ func compareKeysAndContent(
 			len(keys), len(content))
 	}
 
-	for i, _ := range keys {
+	for i := range keys {
 		ident, ok := content[i].(identifier)
 		if !ok {
 			t.Errorf("Key %s did not return valid content", keys[i])
@@ -278,6 +278,57 @@ func TestWikipediaExample(t *testing.T) {
 	if r.String() != expected.String() {
 		t.Errorf("Result %s does not match expected %s", r.String(), expected.String())
 	}
+}
+
+// Test a prefix search
+func TestPrefixSearchEqualLength(t *testing.T) {
+
+	// Grab pre-created tree
+	r := NewRadixTree()
+	r.Add("+442", struct{}{})
+	r.Add("+339", struct{}{})
+	r.Add("+334", struct{}{})
+
+	{
+		matches, _ := r.PrefixSearch("+339")
+		expected := []string{"+339"}
+		if !reflect.DeepEqual(matches, expected) {
+			t.Errorf("Matches %v does not equal expected %v", matches, expected)
+		}
+	}
+
+	{
+		matches, _ := r.PrefixSearch("+338")
+		expected := []string{}
+		if !reflect.DeepEqual(matches, expected) {
+			t.Errorf("Matches %v does not equal expected %v", matches, expected)
+		}
+	}
+
+	{
+		matches, _ := r.PrefixSearch("+442")
+		expected := []string{"+442"}
+		if !reflect.DeepEqual(matches, expected) {
+			t.Errorf("Matches %v does not equal expected %v", matches, expected)
+		}
+	}
+
+	{
+		matches, _ := r.PrefixSearch("+441")
+		expected := []string{}
+		if !reflect.DeepEqual(matches, expected) {
+			t.Errorf("Matches %v does not equal expected %v", matches, expected)
+		}
+	}
+
+	{
+		matches, _ := r.PrefixSearch("+4420")
+		expected := []string{}
+		if !reflect.DeepEqual(matches, expected) {
+			t.Errorf("Matches %v does not equal expected %v", matches, expected)
+		}
+	}
+
 }
 
 // Test a prefix search
@@ -661,6 +712,67 @@ func TestFuzzyIntegrationNotExpected(t *testing.T) {
 			t.Errorf("Search '%s' did contain '%s', expected not to be there",
 				test.Search,
 				test.Expect)
+		}
+	}
+}
+
+func testLongestPrefix(t *testing.T) {
+
+	// Grab pre-created tree
+	r := NewRadixTree()
+	r.Add("+442", struct{}{})
+	r.Add("+339", struct{}{})
+	r.Add("+334", struct{}{})
+
+	{
+		p, b := r.LongestPrefix("+44212345678")
+		expectedPrefix := "+442"
+		expectedFound := true
+
+		if p != expectedPrefix {
+			t.Errorf("Expected prefix was %s, got %s", expectedPrefix, p)
+		}
+		if b != expectedFound {
+			t.Errorf("Expected prefix found was %t, got %t", expectedFound, b)
+		}
+	}
+
+	{
+		p, b := r.LongestPrefix("+44112345678")
+		expectedPrefix := ""
+		expectedFound := false
+
+		if p != expectedPrefix {
+			t.Errorf("Expected prefix was %s, got %s", expectedPrefix, p)
+		}
+		if b != expectedFound {
+			t.Errorf("Expected prefix found was %t, got %t", expectedFound, b)
+		}
+	}
+
+	{
+		p, b := r.LongestPrefix("-44212345678")
+		expectedPrefix := ""
+		expectedFound := false
+
+		if p != expectedPrefix {
+			t.Errorf("Expected prefix was %s, got %s", expectedPrefix, p)
+		}
+		if b != expectedFound {
+			t.Errorf("Expected prefix found was %t, got %t", expectedFound, b)
+		}
+	}
+
+	{
+		p, b := r.LongestPrefix("+33921234567")
+		expectedPrefix := "+339"
+		expectedFound := true
+
+		if p != expectedPrefix {
+			t.Errorf("Expected prefix was %s, got %s", expectedPrefix, p)
+		}
+		if b != expectedFound {
+			t.Errorf("Expected prefix found was %t, got %t", expectedFound, b)
 		}
 	}
 }
